@@ -4,6 +4,7 @@ import com.google.gson.JsonArray
 import dev.dadowl.uptimer.utils.Config
 import dev.dadowl.uptimer.utils.FileUtil
 import dev.dadowl.uptimer.utils.JsonBuilder
+import dev.dadowl.uptimer.utils.Utils
 import kotlin.system.exitProcess
 
 object Main {
@@ -48,7 +49,7 @@ object Main {
 
     fun loadUptimerItems(){
         UptimerLogger.info("Load UptimerItems")
-        var jarray: JsonArray = JsonArray()
+        var jarray = JsonArray()
 
         try {
             jarray = config.getJsonArray("items")
@@ -62,8 +63,12 @@ object Main {
 
         jarray.forEach{ item ->
             val it = UptimerItem(item.asJsonObject)
-            uptimerItems.add(it)
-            UptimerLogger.info("Loaded ${it.toStringMain()}")
+            if (Utils.isValidIp(it.ip)){
+                uptimerItems.add(it)
+                UptimerLogger.info("Loaded ${it.toStringMain()}")
+            } else {
+                UptimerLogger.warn("Skipped - ${it.toStringMain()} - wrong IP!")
+            }
         }
     }
 
