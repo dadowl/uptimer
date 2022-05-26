@@ -14,6 +14,7 @@ object Main {
                 JsonBuilder()
                     .add("token", "")
                     .add("username", "")
+                    .add("channel", 0)
                 .build()
             )
             .add("items", JsonBuilder().build())
@@ -21,29 +22,42 @@ object Main {
 
     private var config = Config(FileUtil.openFile("config.json", defaultConfig))
 
+    private var tg_token = ""
+    private var tg_username = ""
+    private var tg_channel = 0L
+    private lateinit var uptimerTgNoticer: UptimerTgNoticer
+
     val uptimerItems = ArrayList<UptimerItem>()
 
     @JvmStatic
     fun main(args: Array<String>) {
+        tg_token = Config(config.getJsonObject("Telegram")).getString("token")
+        tg_username = Config(config.getJsonObject("Telegram")).getString("username")
+        tg_channel = Config(config.getJsonObject("Telegram")).getLong("channel")
+
+        if (tg_token.isEmpty() || tg_username.isEmpty() || tg_channel == 0L){
+            stop("Telegram settings error.")
+        }
+
+        uptimerTgNoticer = UptimerTgNoticer(tg_token, tg_username, tg_channel)
+
+        //uptimerTgNoticer.sendMessage("Hello World!")
+
         loadUptimerItems()
     }
 
     fun loadUptimerItems(){
         UptimerLogger.info("Load UptimerItems")
-        var jarray: JsonArray
+        var jarray: JsonArray = JsonArray()
 
         try {
             jarray = config.getJsonArray("items")
         } catch (ex: Exception){
-            UptimerLogger.warn("No items found.")
-            UptimerLogger.warn("Stopping...")
-            exitProcess(0)
+            stop("No items found.")
         }
 
         if (jarray.isEmpty) {
-            UptimerLogger.warn("No items found.")
-            UptimerLogger.warn("Stopping...")
-            exitProcess(0)
+            stop("No items found.")
         }
 
         jarray.forEach{ item ->
@@ -51,5 +65,15 @@ object Main {
             uptimerItems.add(it)
             UptimerLogger.info("Loaded ${it.toStringMain()}")
         }
+    }
+
+    fun stop(){
+        UptimerLogger.warn("Stopping...")
+        exitProcess(0)
+    }
+
+    fun stop(err: String){
+        UptimerLogger.error(err)
+        stop()
     }
 }
