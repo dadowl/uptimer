@@ -12,7 +12,6 @@ object Main {
         JsonBuilder()
             .add("Telegram",
                 JsonBuilder()
-                    .add("status", false)
                     .add("token", "")
                     .add("username", "")
                 .build()
