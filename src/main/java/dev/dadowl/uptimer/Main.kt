@@ -5,16 +5,25 @@ import dev.dadowl.uptimer.utils.Config
 import dev.dadowl.uptimer.utils.FileUtil
 import dev.dadowl.uptimer.utils.JsonBuilder
 import dev.dadowl.uptimer.utils.Utils
+import java.lang.Thread.sleep
+import java.time.LocalDateTime
+import java.time.temporal.ChronoUnit
 import kotlin.system.exitProcess
+
 
 object Main {
 
     val defaultConfig =
         JsonBuilder()
+            .add("other",
+                JsonBuilder()
+                    .add("upMessage", "")
+                    .add("downMessage", "")
+                .build()
+            )
             .add("Telegram",
                 JsonBuilder()
                     .add("token", "")
-                    .add("username", "")
                     .add("channel", 0)
                 .build()
             )
@@ -24,25 +33,35 @@ object Main {
     private var config = Config(FileUtil.openFile("config.json", defaultConfig))
 
     private var tg_token = ""
-    private var tg_username = ""
     private var tg_channel = 0L
-    private lateinit var uptimerTgNoticer: UptimerTgNoticer
+    lateinit var uptimerTgNoticer: UptimerTgNoticer
+
+    var upMessage = "Server {ip} is UP!"
+    var downMessage = "Server {ip} is DOWN!"
 
     val uptimerItems = ArrayList<UptimerItem>()
 
     @JvmStatic
     fun main(args: Array<String>) {
         tg_token = Config(config.getJsonObject("Telegram")).getString("token")
-        tg_username = Config(config.getJsonObject("Telegram")).getString("username")
         tg_channel = Config(config.getJsonObject("Telegram")).getLong("channel")
 
-        if (tg_token.isEmpty() || tg_username.isEmpty() || tg_channel == 0L){
+        if (tg_token.isEmpty() ||  tg_channel == 0L){
             stop("Telegram settings error.")
         }
 
-        uptimerTgNoticer = UptimerTgNoticer(tg_token, tg_username, tg_channel)
+        uptimerTgNoticer = UptimerTgNoticer(tg_token, tg_channel)
 
-        //uptimerTgNoticer.sendMessage("Hello World!")
+        if (Config(config.getJsonObject("other")).getString("upMessage").isNotEmpty()){
+            upMessage = Config(config.getJsonObject("other")).getString("upMessage")
+        } else {
+            UptimerLogger.info("Up message is empty in config. Use default message.")
+        }
+        if (Config(config.getJsonObject("other")).getString("downMessage").isNotEmpty()){
+            downMessage = Config(config.getJsonObject("other")).getString("downMessage")
+        } else {
+            UptimerLogger.info("Down message is empty in config. Use default message.")
+        }
 
         loadUptimerItems()
     }
@@ -84,5 +103,25 @@ object Main {
     fun stop(err: String){
         UptimerLogger.error(err)
         stop()
+    }
+
+    fun getMessage(msg: String, item: UptimerItem): String{
+        var message = msg
+
+        if(message.contains("{ip}")){
+            message = message.replace("{ip}", item.ip)
+        }
+        if(message.contains("{serverName}")){
+            message = message.replace("{serverName}", item.serverName)
+        }
+        if(message.contains("{services}")){
+            message = message.replace("{services}", item.services)
+        }
+        if(message.contains("{downTime}")){
+            val diff = ChronoUnit.SECONDS.between(item.downOn, LocalDateTime.now())
+            message = message.replace("{downTime}", diff.toString())
+        }
+
+        return message
     }
 }

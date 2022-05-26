@@ -5,7 +5,7 @@ import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.net.URL
 
-class UptimerTgNoticer(val tg_token: String, val tg_username: String, val tg_channel: Long){
+class UptimerTgNoticer(private val tg_token: String, private val tg_channel: Long){
 
     fun sendMessage(text: String){
         var urlString = "https://api.telegram.org/bot%s/sendMessage?chat_id=%s&text=%s"
