@@ -4,6 +4,7 @@ import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
+import dev.dadowl.uptimer.UptimerLogger
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileWriter
