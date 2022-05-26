@@ -9,6 +9,7 @@ class UptimerItem(var ip: String, val serverName: String, val services: String) 
 
     var status = true
     var downOn: LocalDateTime = LocalDateTime.now()
+    var downTryes = 0
 
     constructor(json: JsonObject) : this(json.get("ip").asString, json.get("serverName").asString, json.get("services").asString)
 
@@ -22,14 +23,19 @@ class UptimerItem(var ip: String, val serverName: String, val services: String) 
 
     fun ping(){
         val geek = InetAddress.getByName(ip)
-        if (!geek.isReachable(5000) && this.status) {
+        val query = geek.isReachable(5000)
+        if (!query && this.status){
+            this.downTryes++
+        }
+        if (!query && this.status && this.downTryes == 3) {
             this.status = false
             downOn = LocalDateTime.now()
             Main.uptimerTgNoticer.sendMessage(Main.getMessage(Main.downMessage, this))
         }
-        if (geek.isReachable(5000) && !this.status){
+        if (query && !this.status){
             this.status = true
             Main.uptimerTgNoticer.sendMessage(Main.getMessage(Main.upMessage, this))
+            this.downTryes = 0
         }
     }
 

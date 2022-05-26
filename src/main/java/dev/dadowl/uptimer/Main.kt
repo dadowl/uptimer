@@ -70,7 +70,7 @@ object Main {
         loadUptimerItems()
 
         scheduler.schedule({ uptimerItems.forEach { it.ping() } },
-            Schedules.afterInitialDelay(Schedules.fixedDelaySchedule(Duration.ofMinutes(5)), Duration.ZERO)
+            Schedules.afterInitialDelay(Schedules.fixedDelaySchedule(Duration.ofMinutes(1)), Duration.ZERO)
         )
     }
 
