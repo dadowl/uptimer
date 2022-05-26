@@ -1,7 +1,9 @@
 package dev.dadowl.uptimer.utils
 
+import com.google.gson.JsonArray
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
+import dev.dadowl.uptimer.UptimerLogger
 
 class Config(val json: JsonObject) {
 
@@ -35,6 +37,10 @@ class Config(val json: JsonObject) {
 
     fun getJsonObject(str: String): JsonObject{
         return if (getVariable(str) != null) getVariable(str)!!.asJsonObject else JsonObject()
+    }
+
+    fun getJsonArray(str: String): JsonArray{
+        return if (getVariable(str) != null) getVariable(str)!!.asJsonArray else JsonArray()
     }
 
 }
