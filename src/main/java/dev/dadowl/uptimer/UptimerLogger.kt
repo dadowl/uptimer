@@ -1,4 +1,4 @@
-package dev.dadowl.uptimer.utils
+package dev.dadowl.uptimer
 
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
