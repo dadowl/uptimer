@@ -1,17 +1,21 @@
 package dev.dadowl.uptimer
 
+import com.coreoz.wisp.Scheduler
+import com.coreoz.wisp.schedule.Schedules
 import com.google.gson.JsonArray
 import dev.dadowl.uptimer.utils.Config
 import dev.dadowl.uptimer.utils.FileUtil
 import dev.dadowl.uptimer.utils.JsonBuilder
 import dev.dadowl.uptimer.utils.Utils
-import java.lang.Thread.sleep
+import java.time.Duration
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 import kotlin.system.exitProcess
 
 
 object Main {
+
+    val scheduler = Scheduler()
 
     val defaultConfig =
         JsonBuilder()
@@ -64,6 +68,10 @@ object Main {
         }
 
         loadUptimerItems()
+
+        scheduler.schedule({ uptimerItems.forEach { it.ping() } },
+            Schedules.afterInitialDelay(Schedules.fixedDelaySchedule(Duration.ofMinutes(5)), Duration.ZERO)
+        )
     }
 
     fun loadUptimerItems(){

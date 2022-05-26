@@ -5,9 +5,9 @@ import java.net.InetAddress
 import java.time.LocalDateTime
 
 
-class UptimerItem(val ip: String, val serverName: String, val services: String) {
+class UptimerItem(var ip: String, val serverName: String, val services: String) {
 
-    var status = false
+    var status = true
     var downOn: LocalDateTime = LocalDateTime.now()
 
     constructor(json: JsonObject) : this(json.get("ip").asString, json.get("serverName").asString, json.get("services").asString)
@@ -22,8 +22,7 @@ class UptimerItem(val ip: String, val serverName: String, val services: String) 
 
     fun ping(){
         val geek = InetAddress.getByName(ip)
-        println("Sending Ping Request to $ip")
-        if (!geek.isReachable(5000)) {
+        if (!geek.isReachable(5000) && this.status) {
             this.status = false
             downOn = LocalDateTime.now()
             Main.uptimerTgNoticer.sendMessage(Main.getMessage(Main.downMessage, this))

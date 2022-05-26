@@ -46,6 +46,11 @@
             <artifactId>commons-validator</artifactId>
             <version>1.7</version>
         </dependency>
+        <dependency>
+            <groupId>com.coreoz</groupId>
+            <artifactId>wisp</artifactId>
+            <version>2.2.2</version>
+        </dependency>
     </dependencies>
 
     <build>
