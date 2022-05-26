@@ -70,6 +70,10 @@ object Main {
                 UptimerLogger.warn("Skipped - ${it.toStringMain()} - wrong IP!")
             }
         }
+
+        if (uptimerItems.isEmpty()){
+            stop("No items found.")
+        }
     }
 
     fun stop(){
