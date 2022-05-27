@@ -89,6 +89,9 @@ object Main {
         }
 
         jarray.forEach{ item ->
+            if (item.asJsonObject.get("upMessage") == null) item.asJsonObject.addProperty("upMessage", upMessage)
+            if (item.asJsonObject.get("downMessage") == null) item.asJsonObject.addProperty("downMessage", downMessage)
+
             val it = UptimerItem(item.asJsonObject)
             if (Utils.isValidIp(it.ip)){
                 uptimerItems.add(it)
