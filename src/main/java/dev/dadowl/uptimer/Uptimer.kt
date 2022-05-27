@@ -30,6 +30,7 @@ object Uptimer {
                     .add("token", "")
                     .add("username", "")
                     .add("channel", 0)
+                    .add("statusMsgId", 0)
                 .build()
             )
             .add("servers", JsonBuilder().build())
@@ -37,9 +38,12 @@ object Uptimer {
 
     private var config = Config(FileUtil.openFile("config.json", defaultConfig))
 
+    var devMode = false
+
     private var tg_token = ""
     private var tg_username = ""
     private var tg_channel = 0L
+    private var tg_statusMsgId = 0
     lateinit var uptimerTgNoticer: UptimerTgNoticer
 
     var upMessage = "Server {ip} is UP!"
@@ -49,16 +53,30 @@ object Uptimer {
 
     @JvmStatic
     fun main(args: Array<String>) {
+        if (args.isNotEmpty() && args[0]=="--dev"){
+            devMode = true
+        }
+
         tg_token = Config(config.getJsonObject("Telegram")).getString("token")
         tg_username = Config(config.getJsonObject("Telegram")).getString("username")
         tg_channel = Config(config.getJsonObject("Telegram")).getLong("channel")
+        tg_statusMsgId = Config(config.getJsonObject("Telegram")).getInt("statusMsgId")
 
         if (tg_token.isEmpty() || tg_username.isEmpty() ||  tg_channel == 0L){
             stop("Telegram settings error.")
         }
 
-        uptimerTgNoticer = UptimerTgNoticer(tg_token, tg_username, tg_channel)
+        if (tg_statusMsgId == 0){
+            UptimerLogger.warn("Status message id is 0! Ignoring this function.")
+        }
+
+        uptimerTgNoticer = UptimerTgNoticer(tg_token, tg_username, tg_channel, tg_statusMsgId)
         uptimerTgNoticer.connect()
+
+        if (devMode){
+            uptimerTgNoticer.sendMessage("Status message", true)
+            stop()
+        }
 
         if (Config(config.getJsonObject("other")).getString("upMessage").isNotEmpty()){
             upMessage = Config(config.getJsonObject("other")).getString("upMessage")
