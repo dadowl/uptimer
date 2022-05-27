@@ -33,7 +33,7 @@ class UptimerItem(var ip: String, val serverName: String, val services: String,
             this.status = false
 
             if (this.downTryes == 2) {
-                Main.uptimerTgNoticer.sendMessage(Main.getMessage(downMsg, this))
+                Uptimer.uptimerTgNoticer.sendMessage(Uptimer.getMessage(downMsg, this))
             } else if (this.downTryes == 0) {
                 downOn = LocalDateTime.now()
             }
@@ -43,7 +43,7 @@ class UptimerItem(var ip: String, val serverName: String, val services: String,
         if (query && !this.status){
             UptimerLogger.info("$ip is UP")
             this.status = true
-            Main.uptimerTgNoticer.sendMessage(Main.getMessage(upMsg, this))
+            Uptimer.uptimerTgNoticer.sendMessage(Uptimer.getMessage(upMsg, this))
             this.downTryes = 0
         }
     }

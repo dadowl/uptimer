@@ -13,7 +13,7 @@ import java.time.temporal.ChronoUnit
 import kotlin.system.exitProcess
 
 
-object Main {
+object Uptimer {
 
     val scheduler = Scheduler()
 

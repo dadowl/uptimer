@@ -141,7 +141,7 @@
                         <manifest>
                             <addClasspath>true</addClasspath>
                             <classpathPrefix>lib/</classpathPrefix>
-                            <mainClass>dev.dadowl.uptimer.Main</mainClass>
+                            <mainClass>dev.dadowl.uptimer.Uptimer</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
