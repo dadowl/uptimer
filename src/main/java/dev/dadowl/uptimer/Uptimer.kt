@@ -28,6 +28,7 @@ object Uptimer {
             .add("Telegram",
                 JsonBuilder()
                     .add("token", "")
+                    .add("username", "")
                     .add("channel", 0)
                 .build()
             )
@@ -37,6 +38,7 @@ object Uptimer {
     private var config = Config(FileUtil.openFile("config.json", defaultConfig))
 
     private var tg_token = ""
+    private var tg_username = ""
     private var tg_channel = 0L
     lateinit var uptimerTgNoticer: UptimerTgNoticer
 
@@ -48,13 +50,15 @@ object Uptimer {
     @JvmStatic
     fun main(args: Array<String>) {
         tg_token = Config(config.getJsonObject("Telegram")).getString("token")
+        tg_username = Config(config.getJsonObject("Telegram")).getString("username")
         tg_channel = Config(config.getJsonObject("Telegram")).getLong("channel")
 
-        if (tg_token.isEmpty() ||  tg_channel == 0L){
+        if (tg_token.isEmpty() || tg_username.isEmpty() ||  tg_channel == 0L){
             stop("Telegram settings error.")
         }
 
-        uptimerTgNoticer = UptimerTgNoticer(tg_token, tg_channel)
+        uptimerTgNoticer = UptimerTgNoticer(tg_token, tg_username, tg_channel)
+        uptimerTgNoticer.connect()
 
         if (Config(config.getJsonObject("other")).getString("upMessage").isNotEmpty()){
             upMessage = Config(config.getJsonObject("other")).getString("upMessage")
