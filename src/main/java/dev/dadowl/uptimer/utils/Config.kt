@@ -5,7 +5,13 @@ import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 import dev.dadowl.uptimer.UptimerLogger
 
-class Config(val json: JsonObject) {
+class Config() {
+
+    var json = JsonObject()
+
+    constructor(json: JsonObject): this(){
+        this.json = json
+    }
 
     private fun getVariable(varName: String): JsonElement? {
         return try {
@@ -28,11 +34,11 @@ class Config(val json: JsonObject) {
     }
 
     fun getLong(str: String): Long{
-        return if (getVariable(str) != null) getVariable(str)!!.asLong else 0L
+        return if (getVariable(str) != null) getVariable(str)!!.asLong else -1L
     }
 
     fun getInt(str: String): Int{
-        return if (getVariable(str) != null) getVariable(str)!!.asInt else 0
+        return if (getVariable(str) != null) getVariable(str)!!.asInt else -1
     }
 
     fun getJsonObject(str: String): JsonObject{

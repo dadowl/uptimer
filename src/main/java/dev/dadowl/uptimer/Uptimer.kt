@@ -3,34 +3,51 @@ package dev.dadowl.uptimer
 import com.coreoz.wisp.Scheduler
 import com.coreoz.wisp.schedule.Schedules
 import com.google.gson.JsonArray
-import dev.dadowl.uptimer.utils.Config
-import dev.dadowl.uptimer.utils.FileUtil
-import dev.dadowl.uptimer.utils.JsonBuilder
-import dev.dadowl.uptimer.utils.Utils
+import com.google.gson.JsonObject
+import dev.dadowl.uptimer.utils.*
 import java.time.Duration
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 import kotlin.system.exitProcess
 
-
 object Uptimer {
 
-    val scheduler = Scheduler()
+    private val scheduler = Scheduler()
 
-    val defaultConfig =
+    private val defaultConfig =
         JsonBuilder()
             .add("other",
                 JsonBuilder()
-                    .add("upMessage", "")
-                    .add("downMessage", "")
+                    .add("upMessage", "Server {serverName}({ip}) is UP!")
+                    .add("downMessage", "Server {serverName}({ip}) is DOWN!")
                 .build()
             )
             .add("Telegram",
                 JsonBuilder()
                     .add("token", "")
                     .add("username", "")
-                    .add("channel", 0)
-                    .add("statusMsgId", 0)
+                    .add("channel", -1)
+                    .add("status",
+                        JsonBuilder()
+                            .add("msgId", -1)
+                            .add("lines",
+                                JsonArrayBuilder()
+                                    .add("{status}")
+                                    .add("")
+                                    .add("Servers:")
+                                    .add("{servers}")
+                                .build()
+                            )
+                            .add("serverPattern", "{status} - {serverName} - {services}")
+                            .add("status",
+                                JsonBuilder()
+                                    .add("allOnline","\uD83D\uDFE2 All servers are online!")
+                                    .add("allOffline","\uD83D\uDD34 All servers are offline!")
+                                    .add("someOffline","\uD83D\uDFE1 Some servers are offline!")
+                                .build()
+                            )
+                        .build()
+                    )
                 .build()
             )
             .add("servers", JsonBuilder().build())
@@ -43,11 +60,11 @@ object Uptimer {
     private var tg_token = ""
     private var tg_username = ""
     private var tg_channel = 0L
-    private var tg_statusMsgId = 0
+    private lateinit var tg_statusMessage: UptimerStatusMessage
     lateinit var uptimerTgNoticer: UptimerTgNoticer
 
-    var upMessage = "Server {ip} is UP!"
-    var downMessage = "Server {ip} is DOWN!"
+    var upMessage = "Server {serverName}({ip}) is UP!"
+    var downMessage = "Server {serverName}({ip}) is DOWN!"
 
     val uptimerItems = ArrayList<UptimerItem>()
 
@@ -60,17 +77,17 @@ object Uptimer {
         tg_token = Config(config.getJsonObject("Telegram")).getString("token")
         tg_username = Config(config.getJsonObject("Telegram")).getString("username")
         tg_channel = Config(config.getJsonObject("Telegram")).getLong("channel")
-        tg_statusMsgId = Config(config.getJsonObject("Telegram")).getInt("statusMsgId")
+        tg_statusMessage = UptimerStatusMessage(Config(Config(config.getJsonObject("Telegram")).getJsonObject("status")))
 
-        if (tg_token.isEmpty() || tg_username.isEmpty() ||  tg_channel == 0L){
+        if (tg_token.isEmpty() || tg_username.isEmpty() ||  tg_channel == -1L){
             stop("Telegram settings error.")
         }
 
-        if (tg_statusMsgId == 0){
+        if (tg_statusMessage.id == -1){
             UptimerLogger.warn("Status message id is 0! Ignoring this function.")
         }
 
-        uptimerTgNoticer = UptimerTgNoticer(tg_token, tg_username, tg_channel, tg_statusMsgId)
+        uptimerTgNoticer = UptimerTgNoticer(tg_token, tg_username, tg_channel, tg_statusMessage)
         uptimerTgNoticer.connect()
 
         if (devMode){
@@ -91,7 +108,10 @@ object Uptimer {
 
         loadUptimerItems()
 
-        scheduler.schedule({ uptimerItems.forEach { it.ping() } },
+        scheduler.schedule({
+                uptimerItems.forEach { it.ping() }
+                uptimerTgNoticer.updateStatusMessage()
+            },
             Schedules.afterInitialDelay(Schedules.fixedDelaySchedule(Duration.ofMinutes(1)), Duration.ZERO)
         )
     }

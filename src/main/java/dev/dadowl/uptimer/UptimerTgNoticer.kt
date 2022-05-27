@@ -4,18 +4,19 @@ import org.telegram.telegrambots.bots.TelegramLongPollingBot
 import org.telegram.telegrambots.meta.TelegramBotsApi
 import org.telegram.telegrambots.meta.api.methods.pinnedmessages.PinChatMessage
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage
-import org.telegram.telegrambots.meta.api.objects.Message
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText
 import org.telegram.telegrambots.meta.api.objects.Update
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException
 import org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException
 import org.telegram.telegrambots.updatesreceivers.DefaultBotSession
+import java.lang.Thread.sleep
 
 
 class UptimerTgNoticer(
     private val tg_token: String,
     private val tg_username: String,
     private val tg_channel: Long,
-    private val tg_statusMsgId: Int
+    private val statusMessage: UptimerStatusMessage
 ): TelegramLongPollingBot(){
 
     val RECONNECT_PAUSE = 10000L
@@ -66,4 +67,59 @@ class UptimerTgNoticer(
 
     override fun onUpdateReceived(update: Update?) {}
 
+    fun updateStatusMessage(){
+        if (statusMessage.id == -1) return
+
+        var status: String
+
+        if (Uptimer.uptimerItems.filter { it.status }.size == Uptimer.uptimerItems.size){
+            status = statusMessage.statuses["allOnline"]!!
+        } else if (Uptimer.uptimerItems.filter { !it.status }.size == Uptimer.uptimerItems.size){
+            status = statusMessage.statuses["allOffline"]!!
+        } else {
+            status = statusMessage.statuses["someOffline"]!!
+        }
+
+        val servers = ArrayList<String>()
+        Uptimer.uptimerItems.forEach { server ->
+            var pattern = statusMessage.serverPattern
+
+            if (pattern.contains("{status}")){
+                pattern = pattern.replace("{status}", if (server.status) "\uD83D\uDFE2" else "\uD83D\uDFE1")
+            }
+            if (pattern.contains("{serverName}")){
+                pattern = pattern.replace("{serverName}", server.serverName)
+            }
+            if (pattern.contains("{services}")){
+                pattern = pattern.replace("{services}", server.services)
+            }
+
+            servers.add(pattern)
+        }
+        var serversString = ""
+        servers.forEach { serversString += it + "\n" }
+
+        val lines = ArrayList<String>()
+        for (line in statusMessage.lines) {
+            var l = line
+
+            if (l.contains("{status}")){
+                l = l.replace("{status}", status)
+            }
+            if (l.contains("{servers}")){
+                l = l.replace("{servers}", serversString)
+            }
+
+            lines.add(l)
+        }
+
+        var finalString = ""
+        lines.forEach { finalString += it + "\n" }
+
+        val edit = EditMessageText()
+        edit.chatId = tg_channel.toString()
+        edit.messageId = statusMessage.id
+        edit.text = finalString
+        execute(edit)
+    }
 }
