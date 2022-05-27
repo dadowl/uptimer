@@ -31,7 +31,7 @@ object Uptimer {
                     .add("channel", 0)
                 .build()
             )
-            .add("items", JsonBuilder().build())
+            .add("servers", JsonBuilder().build())
         .build()
 
     private var config = Config(FileUtil.openFile("config.json", defaultConfig))
@@ -79,7 +79,7 @@ object Uptimer {
         var jarray = JsonArray()
 
         try {
-            jarray = config.getJsonArray("items")
+            jarray = config.getJsonArray("servers")
         } catch (ex: Exception){
             stop("No items found.")
         }

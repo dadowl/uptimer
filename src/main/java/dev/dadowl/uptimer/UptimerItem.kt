@@ -41,10 +41,12 @@ class UptimerItem(var ip: String, val serverName: String, val services: String,
             this.downTryes++
         }
         if (query && !this.status){
-            UptimerLogger.info("$ip is UP")
             this.status = true
             Uptimer.uptimerTgNoticer.sendMessage(Uptimer.getMessage(upMsg, this))
             this.downTryes = 0
+        }
+        if (query && this.status) {
+            UptimerLogger.info("$ip is UP")
         }
     }
 
