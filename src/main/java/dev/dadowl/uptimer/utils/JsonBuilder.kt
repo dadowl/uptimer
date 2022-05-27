@@ -1,5 +1,6 @@
 package dev.dadowl.uptimer.utils
 
+import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 
 class JsonBuilder {
@@ -32,6 +33,11 @@ class JsonBuilder {
 
     fun add(key: Int, value: JsonObject?): JsonBuilder {
         json.add(key.toString(), value)
+        return this
+    }
+
+    fun add(key: String?, array: JsonArray?): JsonBuilder {
+        json.add(key, array)
         return this
     }
 
