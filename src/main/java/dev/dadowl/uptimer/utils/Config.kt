@@ -28,7 +28,7 @@ class Config(val json: JsonObject) {
     }
 
     fun getLong(str: String): Long{
-        return if (getVariable(str) != null) getVariable(str)!!.asLong else 0
+        return if (getVariable(str) != null) getVariable(str)!!.asLong else 0L
     }
 
     fun getInt(str: String): Int{
