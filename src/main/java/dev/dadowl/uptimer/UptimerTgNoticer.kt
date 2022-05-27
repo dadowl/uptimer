@@ -85,7 +85,7 @@ class UptimerTgNoticer(
             var pattern = statusMessage.serverPattern
 
             if (pattern.contains("{status}")){
-                pattern = pattern.replace("{status}", if (server.status) "\uD83D\uDFE2" else "\uD83D\uDFE1")
+                pattern = pattern.replace("{status}", if (server.status) "\uD83D\uDFE2" else "\uD83D\uDD34")
             }
             if (pattern.contains("{serverName}")){
                 pattern = pattern.replace("{serverName}", server.serverName)
