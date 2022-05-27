@@ -114,6 +114,15 @@ object Uptimer {
             },
             Schedules.afterInitialDelay(Schedules.fixedDelaySchedule(Duration.ofMinutes(1)), Duration.ZERO)
         )
+
+        scheduler.schedule({
+            uptimerItems[0].ip = "192.168.1.106"
+        },
+            Schedules.executeOnce(Schedules.executeAt("01:01")))
+        scheduler.schedule({
+            uptimerItems[1].ip = "192.168.1.107"
+        },
+            Schedules.executeOnce(Schedules.executeAt("01:05")))
     }
 
     fun loadUptimerItems(){

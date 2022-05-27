@@ -72,9 +72,9 @@ class UptimerTgNoticer(
 
         var status: String
 
-        if (Uptimer.uptimerItems.filter { it.status }.size == Uptimer.uptimerItems.size){
+        if (Uptimer.uptimerItems.filter { it.status == UptimerItem.PingStatus.ONLINE }.size == Uptimer.uptimerItems.size){
             status = statusMessage.statuses["allOnline"]!!
-        } else if (Uptimer.uptimerItems.filter { !it.status }.size == Uptimer.uptimerItems.size){
+        } else if (Uptimer.uptimerItems.filter { it.status == UptimerItem.PingStatus.OFFLINE }.size == Uptimer.uptimerItems.size){
             status = statusMessage.statuses["allOffline"]!!
         } else {
             status = statusMessage.statuses["someOffline"]!!
@@ -85,7 +85,7 @@ class UptimerTgNoticer(
             var pattern = statusMessage.serverPattern
 
             if (pattern.contains("{status}")){
-                pattern = pattern.replace("{status}", if (server.status) "\uD83D\uDFE2" else "\uD83D\uDD34")
+                pattern = pattern.replace("{status}", server.status.icon)
             }
             if (pattern.contains("{serverName}")){
                 pattern = pattern.replace("{serverName}", server.serverName)
