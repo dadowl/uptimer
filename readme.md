@@ -8,6 +8,9 @@ An application that monitors the status of your servers / sites and, if necessar
 - Setting up messages in the config and full customization;
 - Writing messages only after three unsuccessful ping attempts (can be configured in the config).
 
+### Requirements
+- JDK 17
+
 ### Setup
 1. Launching the application to create configs;
 2. Create a telegram bot;
