@@ -18,6 +18,7 @@ object Uptimer {
         JsonBuilder()
             .add("other",
                 JsonBuilder()
+                    .add("pingEvery", 5)
                     .add("upMessage", "Server {serverName}({ip}) is UP!")
                     .add("downMessage", "Server {serverName}({ip}) is DOWN!")
                 .build()
@@ -65,6 +66,7 @@ object Uptimer {
 
     var upMessage = "Server {serverName}({ip}) is UP!"
     var downMessage = "Server {serverName}({ip}) is DOWN!"
+    var pingEvery = 5
 
     val uptimerItems = ArrayList<UptimerItem>()
 
@@ -106,13 +108,16 @@ object Uptimer {
             UptimerLogger.info("Down message is empty in config. Use default message.")
         }
 
+        pingEvery = Config(config.getJsonObject("other")).getInt("pingEvery", 5)
+        UptimerLogger.info("Ping servers every $pingEvery minute!")
+
         loadUptimerItems()
 
         scheduler.schedule({
                 uptimerItems.forEach { it.ping() }
                 uptimerTgNoticer.updateStatusMessage()
             },
-            Schedules.afterInitialDelay(Schedules.fixedDelaySchedule(Duration.ofMinutes(1)), Duration.ZERO)
+            Schedules.afterInitialDelay(Schedules.fixedDelaySchedule(Duration.ofMinutes(pingEvery.toLong())), Duration.ZERO)
         )
     }
 
