@@ -141,7 +141,6 @@ object Uptimer {
             val it = UptimerItem(item.asJsonObject)
             var corrected = false
             if (it.ip.startsWith("http")) {
-                println(it.ip)
                 if (Utils.isValidURL(it.ip))
                     corrected = true
             } else if (it.ip.split(":").size > 1){
