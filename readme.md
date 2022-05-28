@@ -1,14 +1,14 @@
-#Uptimer
+# Uptimer
 
 An application that monitors the status of your servers / sites and, if necessary, will write to you in the telegram channel about the fall.
 
-###Features
+### Features
 - Telegram channel notifications;
 - Ping servers by ip, ip:port, sites;
 - Setting up messages in the config and full customization;
 - Writing messages only after three unsuccessful ping attempts (can be configured in the config).
 
-###Setup
+### Setup
 1. Launching the application to create configs;
 2. Create a telegram bot;
 3. Fill in information about the bot in the config;
@@ -18,7 +18,7 @@ An application that monitors the status of your servers / sites and, if necessar
 6. After that, fill in the id of status message in the config;
 7. Specify after what time all servers will be pinged with pingEvery. The default is 5 minutes.
 
-##Adding servers
+## Adding servers
 1. Fill in the servers section:
 ```
  { 
@@ -30,7 +30,7 @@ An application that monitors the status of your servers / sites and, if necessar
 2. If necessary, add additional servers. Note that this is a JsonArray!;
 3. If you need to specify upMessage and downMessage messages for a specific server, if they are not specified, messages for all servers from the config will be used.
 
-##Edit status messages
+## Edit status messages
 If you are not satisfied with the standard status message, then you can replace it.
 To do this, you need to change the messages in the config:
 ```
@@ -44,7 +44,7 @@ For example:
 
 You can also output the server name via {serverName}.
 
-###Edit status lines
+### Edit status lines
 This configuration is responsible for configuring what will be listed in the status message line by line.
 Available placeholders:
 
