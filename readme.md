@@ -51,6 +51,8 @@ You can also output the server name via {serverName}.
 ### Edit status lines
 This configuration is responsible for configuring what will be listed in the status message line by line.
 Available placeholders:
+```
+{status} - Displays an availability message according to the current state of the servers. Lines from allOnline, allOffline, someOffline will be substituted here
 
->{status} - Displays an availability message according to the current state of the servers. Lines from allOnline, allOffline, someOffline will be substituted here
-><br><br>{servers} - Displays the state of the server according to the serverPattern
+{servers} - Displays the state of the server according to the serverPattern
+```
