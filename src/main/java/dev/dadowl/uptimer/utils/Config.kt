@@ -41,6 +41,10 @@ class Config() {
         return if (getVariable(str) != null) getVariable(str)!!.asInt else -1
     }
 
+    fun getInt(str: String, value: Int): Int{
+        return if (getVariable(str) != null) getVariable(str)!!.asInt else value
+    }
+
     fun getJsonObject(str: String): JsonObject{
         return if (getVariable(str) != null) getVariable(str)!!.asJsonObject else JsonObject()
     }
