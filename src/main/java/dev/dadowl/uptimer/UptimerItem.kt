@@ -1,7 +1,11 @@
 package dev.dadowl.uptimer
 
 import com.google.gson.JsonObject
+import java.io.IOException
 import java.net.InetAddress
+import java.net.InetSocketAddress
+import java.net.Socket
+import java.net.SocketAddress
 import java.time.LocalDateTime
 
 
@@ -32,9 +36,22 @@ class UptimerItem(var ip: String, val serverName: String, val services: String,
 
     fun ping(){
         UptimerLogger.info("PING $ip")
-        val geek = InetAddress.getByName(ip)
-        val query = geek.isReachable(5000)
-        if (!query){
+        var online = true
+        if (this.ip.split(":").size > 1){
+            val sockaddr: SocketAddress = InetSocketAddress(this.ip.split(":")[0], this.ip.split(":")[1].toInt())
+            val socket = Socket()
+
+            try {
+                socket.connect(sockaddr, 5000)
+            } catch (e: IOException){
+               online = false
+            }
+        } else {
+            val geek = InetAddress.getByName(ip)
+            online = geek.isReachable(5000)
+        }
+
+        if (!online){
             UptimerLogger.info("$ip is DOWN")
             if (this.status != PingStatus.OFFLINE)
                 this.status = PingStatus.PENDING
@@ -48,12 +65,12 @@ class UptimerItem(var ip: String, val serverName: String, val services: String,
 
             this.downTryes++
         }
-        if (query && this.status != PingStatus.ONLINE){
+        if (online && this.status != PingStatus.ONLINE){
             this.status = PingStatus.ONLINE
             Uptimer.uptimerTgNoticer.sendMessage(Uptimer.getMessage(upMsg, this))
             this.downTryes = 0
         }
-        if (query && this.status == PingStatus.ONLINE) {
+        if (online && this.status == PingStatus.ONLINE) {
             UptimerLogger.info("$ip is UP")
         }
     }

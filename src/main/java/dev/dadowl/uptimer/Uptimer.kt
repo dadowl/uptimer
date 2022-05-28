@@ -3,7 +3,6 @@ package dev.dadowl.uptimer
 import com.coreoz.wisp.Scheduler
 import com.coreoz.wisp.schedule.Schedules
 import com.google.gson.JsonArray
-import com.google.gson.JsonObject
 import dev.dadowl.uptimer.utils.*
 import java.time.Duration
 import java.time.LocalDateTime
@@ -140,7 +139,15 @@ object Uptimer {
             if (item.asJsonObject.get("downMessage") == null) item.asJsonObject.addProperty("downMessage", downMessage)
 
             val it = UptimerItem(item.asJsonObject)
-            if (Utils.isValidIp(it.ip)){
+            var corrected = false
+            if (it.ip.split(":").size > 1){
+                if (Utils.isValidIp(it.ip.split(":")[0]))
+                    corrected = true
+            } else {
+                if (Utils.isValidIp(it.ip))
+                    corrected = true
+            }
+            if (corrected){
                 uptimerItems.add(it)
                 UptimerLogger.info("Loaded ${it.toStringMain()}")
             } else {
