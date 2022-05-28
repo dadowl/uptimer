@@ -2,10 +2,7 @@ package dev.dadowl.uptimer
 
 import com.google.gson.JsonObject
 import java.io.IOException
-import java.net.InetAddress
-import java.net.InetSocketAddress
-import java.net.Socket
-import java.net.SocketAddress
+import java.net.*
 import java.time.LocalDateTime
 
 
@@ -37,7 +34,15 @@ class UptimerItem(var ip: String, val serverName: String, val services: String,
     fun ping(){
         UptimerLogger.info("PING $ip")
         var online = true
-        if (this.ip.split(":").size > 1){
+         if (this.ip.startsWith("http")) {
+            val connection: HttpURLConnection = URL(this.ip).openConnection() as HttpURLConnection
+            connection.requestMethod = "HEAD"
+             connection.connectTimeout = 5000
+            val responseCode: Int = connection.responseCode
+            if (responseCode != 200) {
+                online = false
+            }
+        } else if (this.ip.split(":").size > 1){
             val sockaddr: SocketAddress = InetSocketAddress(this.ip.split(":")[0], this.ip.split(":")[1].toInt())
             val socket = Socket()
 
@@ -46,7 +51,7 @@ class UptimerItem(var ip: String, val serverName: String, val services: String,
             } catch (e: IOException){
                online = false
             }
-        } else {
+        }  else {
             val geek = InetAddress.getByName(ip)
             online = geek.isReachable(5000)
         }
