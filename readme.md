@@ -5,8 +5,7 @@ An application that monitors the status of your servers / sites and, if necessar
 ### Features
 - Telegram channel notifications;
 - Ping servers by ip, ip:port, sites;
-- Setting up messages in the config and full customization;
-- Writing messages only after three unsuccessful ping attempts (can be configured in the config).
+- Setting up messages in the config and full customization.
 
 ### Requirements
 - JDK 17
@@ -50,9 +49,8 @@ You can also output the server name via {serverName}.
 
 ### Edit status lines
 This configuration is responsible for configuring what will be listed in the status message line by line.
-Available placeholders:
-```
-{status} - Displays an availability message according to the current state of the servers. Lines from allOnline, allOffline, someOffline will be substituted here
 
-{servers} - Displays the state of the server according to the serverPattern
-```
+Available placeholders:
+>{status} - Displays an availability message according to the current state of the servers. Messages from allOnline, allOffline, someOffline will be substituted here
+
+>{servers} - Displays the state of the server according to the serverPattern
