@@ -12,14 +12,14 @@ An application that monitors the status of your servers / sites and, if necessar
 - JDK 17
 
 ### Setup
-1. Launching the application to create configs;
+1. Run the application so that it creates a config;
 > java -jar uptimer.jar
-2. Create a telegram bot;
-3. Fill in information about the bot in the config;
-4. Specify the id of the telegram channel where notifications will be sent;
-5. If you want to use the status update feature, run the application with the --dev flag;
+2. Create a telegram bot via @BotFather;
+3. Specify the username and token from the bot in the config;
+4. Specify the id of the channel where all notifications about pigs will be sent;
+5. [Add servers](https://github.com/dadowl/uptimer#adding-servers)
+6. If you want to use the message-status function, then start the application with the dev flag, then specify the message-status id in the config;
 > java -jar uptimer.jar --dev
-6. After that, fill in the id of status message in the config;
 7. Specify after what time all servers will be pinged with pingEvery. The default is 5 minutes.
 
 ## Adding servers
