@@ -58,7 +58,6 @@ object Uptimer {
                             .add("serverName", "Example server")
                             .add("services", "Google DNS")
                             .add("upMessage", "Server {serverName}({ip}) is UP!  It was offline {downTime} seconds!")
-                            .add("downMessage", "Server {serverName}({ip}) is DOWN!")
                         .build()
                     )
                 .build()
