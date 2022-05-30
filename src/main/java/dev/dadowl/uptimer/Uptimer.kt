@@ -50,7 +50,19 @@ object Uptimer {
                     )
                 .build()
             )
-            .add("servers", JsonBuilder().build())
+            .add("servers",
+                JsonArrayBuilder()
+                    .add(
+                        JsonBuilder()
+                            .add("ip", "8.8.8.8")
+                            .add("serverName", "Example server")
+                            .add("services", "Google DNS")
+                            .add("upMessage", "Server {serverName}({ip}) is UP!  It was offline {downTime} seconds!")
+                            .add("downMessage", "Server {serverName}({ip}) is DOWN!")
+                        .build()
+                    )
+                .build()
+            )
         .build()
 
     private var config = Config(FileUtil.openFile("config.json", defaultConfig))
