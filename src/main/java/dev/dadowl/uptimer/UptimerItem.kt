@@ -1,13 +1,19 @@
 package dev.dadowl.uptimer
 
 import com.google.gson.JsonObject
+import com.sun.tools.javac.Main
 import java.io.IOException
 import java.net.*
 import java.time.LocalDateTime
 
 
-class UptimerItem(var ip: String, val serverName: String, val services: String,
-                  val upMsg: String, val downMsg: String) {
+class UptimerItem(
+    var ip: String,
+    val serverName: String,
+    val services: String,
+    val upMsg: String,
+    val downMsg: String
+) {
 
     var status = PingStatus.ONLINE
     var downOn: LocalDateTime = LocalDateTime.now()
@@ -61,10 +67,12 @@ class UptimerItem(var ip: String, val serverName: String, val services: String,
             if (this.status != PingStatus.OFFLINE)
                 this.status = PingStatus.PENDING
 
-            if (this.downTryes == 2) {
+            if (this.downTryes == (Uptimer.downTryes - 1)) {
                 Uptimer.uptimerTgNoticer.sendMessage(Uptimer.getMessage(downMsg, this))
                 this.status = PingStatus.OFFLINE
-            } else if (this.downTryes == 0) {
+            }
+
+            if (this.downTryes == 0) {
                 downOn = LocalDateTime.now()
             }
 

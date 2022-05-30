@@ -18,6 +18,7 @@ object Uptimer {
             .add("other",
                 JsonBuilder()
                     .add("pingEvery", 5)
+                    .add("downTryes", 3)
                     .add("upMessage", "Server {serverName}({ip}) is UP!")
                     .add("downMessage", "Server {serverName}({ip}) is DOWN!")
                 .build()
@@ -77,6 +78,7 @@ object Uptimer {
     var upMessage = "Server {serverName}({ip}) is UP!"
     var downMessage = "Server {serverName}({ip}) is DOWN!"
     var pingEvery = 5
+    var downTryes = 3
 
     val uptimerItems = ArrayList<UptimerItem>()
 
@@ -118,8 +120,10 @@ object Uptimer {
             UptimerLogger.info("Down message is empty in config. Use default message.")
         }
 
-        pingEvery = Config(config.getJsonObject("other")).getInt("pingEvery", 5)
+        pingEvery = Config(config.getJsonObject("other")).getInt("pingEvery", pingEvery)
         UptimerLogger.info("Ping servers every $pingEvery minute!")
+        downTryes = Config(config.getJsonObject("other")).getInt("downTryes", downTryes)
+        UptimerLogger.info("The server will be considered offline after $downTryes failed ping attempts.")
 
         loadUptimerItems()
 
