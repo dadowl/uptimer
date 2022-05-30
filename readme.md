@@ -14,7 +14,7 @@ An application that monitors the status of your servers / sites and, if necessar
 
 1. Run the application so that it creates a config;
 > java -jar uptimer.jar
-2. Create a telegram bot via @BotFather;
+2. Create a telegram bot via [@BotFather](https://t.me/BotFather);
 3. Specify the username and token from the bot in the config;
 4. Specify the id of the channel where all notifications about pigs will be sent;
 5. [Add servers](https://github.com/dadowl/uptimer#adding-servers)
