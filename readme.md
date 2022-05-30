@@ -11,6 +11,7 @@ An application that monitors the status of your servers / sites and, if necessar
 - JDK 17
 
 ### Setup
+
 1. Run the application so that it creates a config;
 > java -jar uptimer.jar
 2. Create a telegram bot via @BotFather;
@@ -22,6 +23,7 @@ An application that monitors the status of your servers / sites and, if necessar
 7. Specify after what time all servers will be pinged with pingEvery. The default is 5 minutes.
 
 ## Adding servers
+
 1. Fill in the servers section:
 ```
  { 
@@ -33,24 +35,86 @@ An application that monitors the status of your servers / sites and, if necessar
 2. If necessary, add additional servers. Note that this is a JsonArray!;
 3. If you need to specify upMessage and downMessage messages for a specific server, if they are not specified, messages for all servers from the config will be used.
 
-## Edit status messages
-If you are not satisfied with the standard status message, then you can replace it.
-To do this, you need to change the messages in the config:
+## Example config
+
 ```
-allOnline - Will display a message in the status if all servers are running.
-allOffline - Will display a message in the status if all servers are down.
-someOffline - Will display a message in the status if some servers are down.
+{
+  "other": {
+    // How often to ping the server?
+    "pingEvery": 1,
+    // Standard message if the server is online after a crash. One for all servers.
+    "upMessage": "Server {serverName}({ip}) is UP!", 
+    // Standard message if the server is down. One for all servers.
+    "downMessage": "Server {serverName}({ip}) is DOWN!", 
+    // After how many failed pings will the failure notification be displayed?
+    "downTryes": 1 
+  },
+  "Telegram": {
+    // Your Telegram bot token
+    "token": "???",
+    // Your Telegram bot username
+    "username": "???",
+    // Your Telegram channel for notifications 
+    "channel": -1, 
+    "status": {
+      // Status message ID. Can be obtained if run with the --dev flag. If -1, then disabled.
+      "msgId": 51,
+      // Line-by-line format of the status message
+      "lines": [
+        // The current status of all servers is substituted from the config from the "status" section. 
+        "{status}", 
+        "",
+        "Servers:",
+        // List of servers added to the project. Filled in according to the serverPattern below. 
+        "{servers}" 
+      ],
+       // Server template for a list of servers in state.
+       // {status} - if it works, then 🟢, if not, then - 🔴, if it is pending, that is, downTryes != downTryes in the config, then - 🟡
+       // {serverName} - server name from config
+       // {services} - services that run on this server, specified in the config
+      "serverPattern": "{status} - {serverName} - {services}", 
+      "status": {
+        // Will display a message in the status if all servers are running.
+        "allOnline": "🟢 All servers are online!",
+        // Will display a message in the status if all servers are down.
+        "allOffline": "🔴 All servers are offline!", 
+        // Will display a message in the status if some servers are down.
+        "someOffline": "🟡 Some servers are offline!" 
+      }
+    }
+  },
+  "servers": [
+    {
+      // Server ip or ip:port or domain name
+      "ip": "8.8.8.8",
+      // Server name  
+      "serverName": "Example server",
+      // Server services 
+      "services": "Example server", 
+      // This server-only message about being online after the failed pings specified in downTryes and after the server is considered offline.
+      // You can use {downTime} placeholder to show downtime seconds
+      // If this message is not specified, as in server 3, then the message from the configuration file will be used.
+      "upMessage": "Server {serverName}({ip}) is UP!  It was offline {downTime} seconds!" 
+    },
+    {
+      // Server ip or ip:port or domain name
+      "ip": "8.8.4.4",
+      // Server name 
+      "serverName": "Example server 2", 
+      // Server services
+      "services": "Example server 2", 
+      // If the server crashes after the number of failed pings is set to downTryes in the config, then this message will be displayed.
+      // If this message is not specified, as in "Example server 3", then the message from the configuration file will be used.
+      "downMessage": "Server {serverName}({ip}) is DOWN!" 
+    },
+    {
+      // Server ip or ip:port or domain name
+      "ip": "8.8.8.8",
+      // Server name 
+      "serverName": "Example server 3",
+      // Server services 
+      "services": "Example server 3" 
+    }
+  ]
+}
 ```
-You can also change the serverPattern string that is displayed in the status.
-For example:
-> "serverPattern": "{status} - {services}"
-
-You can also output the server name via {serverName}.
-
-### Edit status lines
-This configuration is responsible for configuring what will be listed in the status message line by line.
-
-Available placeholders:
->{status} - Displays an availability message according to the current state of the servers. Messages from allOnline, allOffline, someOffline will be substituted here
-
->{servers} - Displays the state of the server according to the serverPattern
