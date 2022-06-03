@@ -88,10 +88,10 @@ object Uptimer {
             devMode = true
         }
 
-        tg_token = Config(config.getJsonObject("Telegram")).getString("token")
-        tg_username = Config(config.getJsonObject("Telegram")).getString("username")
-        tg_channel = Config(config.getJsonObject("Telegram")).getLong("channel")
-        tg_statusMessage = UptimerStatusMessage(Config(Config(config.getJsonObject("Telegram")).getJsonObject("status")))
+        tg_token = config.getString("Telegram.token")
+        tg_username = config.getString("Telegram.username")
+        tg_channel = config.getLong("Telegram.channel")
+        tg_statusMessage = UptimerStatusMessage(Config(config.getJsonObject("Telegram.status")))
 
         if (tg_token.isEmpty() || tg_username.isEmpty() ||  tg_channel == -1L){
             stop("Telegram settings error.")
@@ -109,20 +109,20 @@ object Uptimer {
             stop()
         }
 
-        if (Config(config.getJsonObject("other")).getString("upMessage").isNotEmpty()){
-            upMessage = Config(config.getJsonObject("other")).getString("upMessage")
+        if (config.getString("Telegram.upMessage").isNotEmpty()){
+            upMessage = config.getString("Telegram.upMessage")
         } else {
             UptimerLogger.info("Up message is empty in config. Use default message.")
         }
-        if (Config(config.getJsonObject("other")).getString("downMessage").isNotEmpty()){
-            downMessage = Config(config.getJsonObject("other")).getString("downMessage")
+        if (config.getString("Telegram.downMessage").isNotEmpty()){
+            downMessage = config.getString("Telegram.downMessage")
         } else {
             UptimerLogger.info("Down message is empty in config. Use default message.")
         }
 
-        pingEvery = Config(config.getJsonObject("other")).getInt("pingEvery", pingEvery)
+        pingEvery = config.getInt("Telegram.pingEvery", pingEvery)
         UptimerLogger.info("Ping servers every $pingEvery minute!")
-        downTryes = Config(config.getJsonObject("other")).getInt("downTryes", downTryes)
+        downTryes = config.getInt("Telegram.downTryes", downTryes)
         UptimerLogger.info("The server will be considered offline after $downTryes failed ping attempts.")
 
         loadUptimerItems()

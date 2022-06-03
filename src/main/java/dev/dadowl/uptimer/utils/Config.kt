@@ -1,9 +1,6 @@
 package dev.dadowl.uptimer.utils
 
-import com.google.gson.JsonArray
-import com.google.gson.JsonElement
-import com.google.gson.JsonObject
-import dev.dadowl.uptimer.UptimerLogger
+import com.google.gson.*
 
 class Config() {
 
@@ -13,13 +10,18 @@ class Config() {
         this.json = json
     }
 
-    private fun getVariable(varName: String): JsonElement? {
-        return try {
-            json.get(varName)
-        } catch(ex: Exception){
-            UptimerLogger.error("Variable $varName from json object was not found")
-            null
+    private fun getVariable(path: String): JsonElement? {
+        var obj = GsonBuilder().create().fromJson(json, JsonObject::class.java)
+        val seg = path.split("\\.".toRegex()).toTypedArray()
+        for (element in seg) {
+            obj = if (obj != null) {
+                val ele = obj[element] ?: return null
+                if (!ele.isJsonObject) return ele else ele.asJsonObject
+            } else {
+                return null
+            }
         }
+        return obj
     }
 
     fun getBoolean(str: String): Boolean{
