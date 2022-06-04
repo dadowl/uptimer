@@ -7,6 +7,8 @@ import dev.dadowl.uptimer.utils.*
 import java.time.Duration
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
+import java.util.*
+import kotlin.collections.ArrayList
 import kotlin.system.exitProcess
 
 object Uptimer {
@@ -37,6 +39,17 @@ object Uptimer {
         uptimerTgNoticer.connect()
 
         if (devMode){
+
+            if (uptimerTgNoticer.statusMessage.id != -1) {
+                UptimerLogger.warn("The status message id is currently installed. You sure to update status message id? [Y/N]")
+                val scan = Scanner(System.`in`)
+                when (scan.next().lowercase()) {
+                    "N", "n", "no" -> {
+                        stop()
+                    }
+                }
+            }
+
             uptimerTgNoticer.sendMessage("Status message", true)
             stop()
         }
