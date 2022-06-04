@@ -11,8 +11,8 @@ class UptimerItem(
     var ip: String,
     val serverName: String,
     val services: String,
-    val upMsg: String,
-    val downMsg: String
+    private val upMsg: String,
+    private val downMsg: String
 ) {
 
     var status = PingStatus.ONLINE
@@ -78,7 +78,7 @@ class UptimerItem(
 
             this.downTryes++
         }
-        if (online && this.status != PingStatus.ONLINE){
+        if (online && this.status == PingStatus.OFFLINE){
             this.status = PingStatus.ONLINE
             Uptimer.uptimerTgNoticer.sendMessage(Uptimer.getMessage(upMsg, this))
             this.downTryes = 0

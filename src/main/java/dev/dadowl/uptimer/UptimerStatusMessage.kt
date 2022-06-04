@@ -31,7 +31,7 @@ class UptimerStatusMessage(private val config: Config) {
         }
 
         statuses.forEach{ (status, _) ->
-            val cnf = Config(config.getJsonObject("status"))
+            val cnf = Config(config.getJsonObject("statuses"))
             if (cnf.getString(status).isNotEmpty()){
                 statuses[status] = cnf.getString(status)
             }
