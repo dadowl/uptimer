@@ -44,7 +44,7 @@ enum class DefaultConfig(val json: JsonObject) {
                             .add("allOnline", "\uD83D\uDFE2 All servers are online!")
                             .add("allOffline", "\uD83D\uDD34 All servers are offline!")
                             .add("someOffline", "\uD83D\uDFE1 Some servers are offline!")
-                            .build()
+                        .build()
                     )
                     .build()
             )

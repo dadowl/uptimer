@@ -70,6 +70,8 @@ class UptimerTgNoticer(
             val send = execute(msg)
             if (dev){
                 UptimerLogger.info("Status message id is ${send.messageId}")
+                Uptimer.saveStatusId(send.messageId)
+                UptimerLogger.info("Status message id saved in config file.")
                 val pin = PinChatMessage(tg_channel.toString(), send.messageId, false)
                 execute(pin)
             }

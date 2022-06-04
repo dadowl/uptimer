@@ -139,4 +139,9 @@ object Uptimer {
 
         return message
     }
+
+    fun saveStatusId(id: Int){
+        telegramConfig.json.get("status").asJsonObject.addProperty("msgId", id)
+        FileUtil.saveFile("telegram.json", telegramConfig.json)
+    }
 }
