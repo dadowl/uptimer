@@ -2,6 +2,7 @@ package dev.dadowl.uptimer
 
 import com.google.gson.JsonObject
 import com.sun.tools.javac.Main
+import dev.dadowl.uptimer.utils.JsonBuilder
 import java.io.IOException
 import java.net.*
 import java.time.LocalDateTime
@@ -35,6 +36,14 @@ class UptimerItem(
 
     override fun toString(): String{
         return "UptimerItem(ip = $ip, services = $services, status = $status)"
+    }
+
+    fun toJson(): JsonObject{
+        return JsonBuilder()
+            .add("ip",this.ip)
+            .add("services", this.services)
+            .add("status", this.status.toString())
+        .build()
     }
 
     fun ping(){
