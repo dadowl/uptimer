@@ -112,13 +112,6 @@ class UptimerTgNoticer(config: Config): TelegramLongPollingBot(){
             if (l.contains("{status}")){
                 l = l.replace(l, status)
             }
-            /*if (l.contains("{servers}")){
-                var serversString = StringBuilder()
-                Uptimer.uptimerItems.filter { it.group == "servers" }.forEach { server ->
-                    serversString.append(UptimerItem.getMessage(statusMessage.serverPattern, server) + "\n")
-                }
-                l = l.replace(l, serversString.toString())
-            }*/
             if (l.contains("group")){
                 var currentGroup = l.split(":")[1]
                 currentGroup = currentGroup.substring(0, currentGroup.length - 1)
