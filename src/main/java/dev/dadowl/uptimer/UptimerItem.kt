@@ -37,15 +37,19 @@ class UptimerItem(
             if(message.contains("{errorCode}")){
                 message = message.replace("{errorCode}", item.errorCode.toString())
             }
+            if(message.contains("{status}")){
+                message = message.replace("{status}", item.status.icon)
+            }
 
             return message
         }
     }
 
+    var group = "servers"
     var status = PingStatus.ONLINE
     var downOn: LocalDateTime = LocalDateTime.now()
     var downTryes = 0
-    var errorCode = 0;
+    var errorCode = 0
 
     enum class PingStatus(val icon: String){
         ONLINE("\uD83D\uDFE2"),
@@ -55,18 +59,23 @@ class UptimerItem(
 
     constructor(json: JsonObject)
             : this(json.get("ip").asString, json.get("serverName").asString, json.get("services").asString,
-                json.get("upMessage").asString, json.get("downMessage").asString)
+                json.get("upMessage").asString, json.get("downMessage").asString) {
+       if (json.get("group") != null && json.get("group").asString.isNotEmpty()){
+           group = json.get("group").asString
+       }
+    }
 
     fun toStringMain(): String{
-        return "UptimerItem(ip = $ip, services = $services)"
+        return "UptimerItem(group = $group, ip = $ip, services = $services)"
     }
 
     override fun toString(): String{
-        return "UptimerItem(ip = $ip, services = $services, status = $status)"
+        return "UptimerItem(group = $group, ip = $ip, services = $services, status = $status)"
     }
 
     fun toJson(): JsonObject{
         return JsonBuilder()
+            .add("group", group)
             .add("ip",this.ip)
             .add("services", this.services)
             .add("status", this.status.toString())

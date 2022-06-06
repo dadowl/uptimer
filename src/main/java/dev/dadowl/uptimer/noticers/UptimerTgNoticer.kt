@@ -105,34 +105,34 @@ class UptimerTgNoticer(config: Config): TelegramLongPollingBot(){
             statusMessage.statuses["someOffline"]!!
         }
 
-        val servers = ArrayList<String>()
-        Uptimer.uptimerItems.forEach { server ->
-            var pattern = statusMessage.serverPattern
-
-            if (pattern.contains("{status}")){
-                pattern = pattern.replace("{status}", server.status.icon)
-            }
-            if (pattern.contains("{serverName}")){
-                pattern = pattern.replace("{serverName}", server.serverName)
-            }
-            if (pattern.contains("{services}")){
-                pattern = pattern.replace("{services}", server.services)
-            }
-
-            servers.add(pattern)
-        }
-        var serversString = ""
-        servers.forEach { serversString += it + "\n" }
-
         val lines = ArrayList<String>()
         for (line in statusMessage.lines) {
             var l = line
 
             if (l.contains("{status}")){
-                l = l.replace("{status}", status)
+                l = l.replace(l, status)
             }
-            if (l.contains("{servers}")){
-                l = l.replace("{servers}", serversString)
+            /*if (l.contains("{servers}")){
+                var serversString = StringBuilder()
+                Uptimer.uptimerItems.filter { it.group == "servers" }.forEach { server ->
+                    serversString.append(UptimerItem.getMessage(statusMessage.serverPattern, server) + "\n")
+                }
+                l = l.replace(l, serversString.toString())
+            }*/
+            if (l.contains("group")){
+                var currentGroup = l.split(":")[1]
+                currentGroup = currentGroup.substring(0, currentGroup.length - 1)
+
+                val groupServers = Uptimer.uptimerItems.filter { it.group == currentGroup }
+                if (groupServers.isNotEmpty()){
+                    var serversString = StringBuilder()
+                    var i = 0
+                    groupServers.forEach { server ->
+                        i++
+                        serversString.append(UptimerItem.getMessage(statusMessage.serverPattern, server) + if (i != groupServers.size) "\n" else "")
+                    }
+                    l = l.replace(l, serversString.toString())
+                }
             }
 
             lines.add(l)
