@@ -3,6 +3,9 @@ package dev.dadowl.uptimer.noticers
 import dev.dadowl.uptimer.Uptimer
 import dev.dadowl.uptimer.UptimerItem
 import dev.dadowl.uptimer.UptimerLogger
+import dev.dadowl.uptimer.events.UptimerPingEvent
+import dev.dadowl.uptimer.events.UptimerEventListener
+import dev.dadowl.uptimer.events.UptimerEventType
 import dev.dadowl.uptimer.utils.Config
 import org.telegram.telegrambots.bots.TelegramLongPollingBot
 import org.telegram.telegrambots.meta.TelegramBotsApi
@@ -15,7 +18,7 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException
 import org.telegram.telegrambots.updatesreceivers.DefaultBotSession
 
 
-class UptimerTgNoticer(config: Config): TelegramLongPollingBot(){
+class UptimerTgNoticer(config: Config): TelegramLongPollingBot(), UptimerEventListener{
 
     val enabled = config.getBoolean("enabled", false)
     private val tg_token = config.getString("token")
@@ -134,6 +137,18 @@ class UptimerTgNoticer(config: Config): TelegramLongPollingBot(){
             edit.messageId = statusMessage.id
             edit.text = finalString
             execute(edit)
+        }
+    }
+
+    override fun processEvent(event: UptimerPingEvent) {
+        val uptimerItem = event.source as UptimerItem
+        when(event.eventType){
+            UptimerEventType.PING_ONLINE -> {
+                Uptimer.uptimerTgNoticer.sendMessage(UptimerItem.getMessage(uptimerItem.upMsg, uptimerItem))
+            }
+            UptimerEventType.PING_OFFLINE -> {
+                Uptimer.uptimerTgNoticer.sendMessage(UptimerItem.getMessage(uptimerItem.downMsg, uptimerItem))
+            }
         }
     }
 }

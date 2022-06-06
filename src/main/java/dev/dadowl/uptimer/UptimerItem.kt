@@ -1,7 +1,8 @@
 package dev.dadowl.uptimer
 
 import com.google.gson.JsonObject
-import com.sun.tools.javac.Main
+import dev.dadowl.uptimer.events.UptimerPingEvent
+import dev.dadowl.uptimer.events.UptimerEventType
 import dev.dadowl.uptimer.utils.JsonBuilder
 import java.io.IOException
 import java.net.*
@@ -13,8 +14,8 @@ class UptimerItem(
     var ip: String,
     val serverName: String,
     val services: String,
-    private val upMsg: String,
-    private val downMsg: String
+    val upMsg: String,
+    val downMsg: String
 ) {
 
     companion object {
@@ -112,10 +113,11 @@ class UptimerItem(
             UptimerLogger.info("$ip is DOWN")
             if (this.status != PingStatus.OFFLINE)
                 this.status = PingStatus.PENDING
+                Uptimer.notifyListeners(UptimerPingEvent(this, UptimerEventType.PING_PENDING))
 
             if (this.downTryes == (Uptimer.downTryes - 1)) {
-                Uptimer.uptimerTgNoticer.sendMessage(getMessage(downMsg, this))
                 this.status = PingStatus.OFFLINE
+                Uptimer.notifyListeners(UptimerPingEvent(this, UptimerEventType.PING_OFFLINE))
             }
 
             if (this.downTryes == 0) {
@@ -126,9 +128,9 @@ class UptimerItem(
         }
         if (online && this.status == PingStatus.OFFLINE){
             this.status = PingStatus.ONLINE
-            Uptimer.uptimerTgNoticer.sendMessage(getMessage(upMsg, this))
             this.downTryes = 0
             this.errorCode = 0
+            Uptimer.notifyListeners(UptimerPingEvent(this, UptimerEventType.PING_ONLINE))
         }
         if (online && this.status == PingStatus.ONLINE) {
             UptimerLogger.info("$ip is UP")
