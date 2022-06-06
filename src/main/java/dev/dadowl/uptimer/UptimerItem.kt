@@ -6,6 +6,7 @@ import dev.dadowl.uptimer.utils.JsonBuilder
 import java.io.IOException
 import java.net.*
 import java.time.LocalDateTime
+import java.time.temporal.ChronoUnit
 
 
 class UptimerItem(
@@ -16,9 +17,35 @@ class UptimerItem(
     private val downMsg: String
 ) {
 
+    companion object {
+        fun getMessage(msg: String, item: UptimerItem): String{
+            var message = msg
+
+            if(message.contains("{ip}")){
+                message = message.replace("{ip}", item.ip)
+            }
+            if(message.contains("{serverName}")){
+                message = message.replace("{serverName}", item.serverName)
+            }
+            if(message.contains("{services}")){
+                message = message.replace("{services}", item.services)
+            }
+            if(message.contains("{downTime}")){
+                val diff = ChronoUnit.SECONDS.between(item.downOn, LocalDateTime.now())
+                message = message.replace("{downTime}", diff.toString())
+            }
+            if(message.contains("{errorCode}")){
+                message = message.replace("{errorCode}", item.errorCode.toString())
+            }
+
+            return message
+        }
+    }
+
     var status = PingStatus.ONLINE
     var downOn: LocalDateTime = LocalDateTime.now()
     var downTryes = 0
+    var errorCode = 0;
 
     enum class PingStatus(val icon: String){
         ONLINE("\uD83D\uDFE2"),
@@ -56,6 +83,7 @@ class UptimerItem(
             val responseCode: Int = connection.responseCode
             if (responseCode != 200) {
                 online = false
+                errorCode = responseCode
             }
         } else if (this.ip.split(":").size > 1){
             val sockaddr: SocketAddress = InetSocketAddress(this.ip.split(":")[0], this.ip.split(":")[1].toInt())
@@ -77,7 +105,7 @@ class UptimerItem(
                 this.status = PingStatus.PENDING
 
             if (this.downTryes == (Uptimer.downTryes - 1)) {
-                Uptimer.uptimerTgNoticer.sendMessage(Uptimer.getMessage(downMsg, this))
+                Uptimer.uptimerTgNoticer.sendMessage(getMessage(downMsg, this))
                 this.status = PingStatus.OFFLINE
             }
 
@@ -89,8 +117,9 @@ class UptimerItem(
         }
         if (online && this.status == PingStatus.OFFLINE){
             this.status = PingStatus.ONLINE
-            Uptimer.uptimerTgNoticer.sendMessage(Uptimer.getMessage(upMsg, this))
+            Uptimer.uptimerTgNoticer.sendMessage(getMessage(upMsg, this))
             this.downTryes = 0
+            this.errorCode = 0
         }
         if (online && this.status == PingStatus.ONLINE) {
             UptimerLogger.info("$ip is UP")

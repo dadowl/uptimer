@@ -142,26 +142,6 @@ object Uptimer {
         stop()
     }
 
-    fun getMessage(msg: String, item: UptimerItem): String{
-        var message = msg
-
-        if(message.contains("{ip}")){
-            message = message.replace("{ip}", item.ip)
-        }
-        if(message.contains("{serverName}")){
-            message = message.replace("{serverName}", item.serverName)
-        }
-        if(message.contains("{services}")){
-            message = message.replace("{services}", item.services)
-        }
-        if(message.contains("{downTime}")){
-            val diff = ChronoUnit.SECONDS.between(item.downOn, LocalDateTime.now())
-            message = message.replace("{downTime}", diff.toString())
-        }
-
-        return message
-    }
-
     fun saveStatusId(id: Int){
         noticersConfig.json.getAsJsonObject("Telegram").get("status").asJsonObject.addProperty("msgId", id)
         FileUtil.saveFile("noticers.json", noticersConfig.json)
