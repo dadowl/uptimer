@@ -39,6 +39,8 @@ class UptimerTgNoticer(config: Config): TelegramLongPollingBot(){
             if (statusMessage.id == -1){
                 UptimerLogger.warn("Status message id is -1! Ignoring this function.")
             }
+        } else {
+            UptimerLogger.warn("Telegram noticer is disabled.")
         }
     }
 
