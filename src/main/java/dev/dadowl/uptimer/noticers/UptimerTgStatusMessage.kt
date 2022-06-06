@@ -18,6 +18,7 @@ class UptimerTgStatusMessage(private val config: Config) {
         "someOffline" to "🟡 Some servers are offline!"
     ))
     var serverPattern = "{status} - {serverName} - {services}"
+    var statusText = ""
 
     init {
         this.id = config.getInt("msgId")

@@ -127,10 +127,13 @@ class UptimerTgNoticer(config: Config): TelegramLongPollingBot(){
         var finalString = ""
         lines.forEach { finalString += it + "\n" }
 
-        val edit = EditMessageText()
-        edit.chatId = tg_channel.toString()
-        edit.messageId = statusMessage.id
-        edit.text = finalString
-        execute(edit)
+        if (this.statusMessage.statusText != finalString){
+            this.statusMessage.statusText = finalString
+            val edit = EditMessageText()
+            edit.chatId = tg_channel.toString()
+            edit.messageId = statusMessage.id
+            edit.text = finalString
+            execute(edit)
+        }
     }
 }
