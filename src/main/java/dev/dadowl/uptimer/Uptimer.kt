@@ -4,6 +4,7 @@ import com.coreoz.wisp.Scheduler
 import com.coreoz.wisp.schedule.Schedules
 import com.google.gson.JsonArray
 import dev.dadowl.uptimer.utils.*
+import dev.dadowl.uptimer.webserver.UptimerWebServer
 import java.time.Duration
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
@@ -20,6 +21,8 @@ object Uptimer {
     private var serversConfig = Config(FileUtil.openFile("servers.json", DefaultConfig.SERVERS.json))
 
     var devMode = false
+
+    val uptimerWebServer = UptimerWebServer()
 
     val uptimerTgNoticer: UptimerTgNoticer = UptimerTgNoticer(telegramConfig)
 
@@ -78,6 +81,8 @@ object Uptimer {
             },
             Schedules.afterInitialDelay(Schedules.fixedDelaySchedule(Duration.ofMinutes(pingEvery.toLong())), Duration.ZERO)
         )
+
+        uptimerWebServer.start()
     }
 
     fun loadUptimerItems(){
