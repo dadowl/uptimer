@@ -14,9 +14,9 @@ import org.telegram.telegrambots.updatesreceivers.DefaultBotSession
 
 class UptimerTgNoticer(config: Config): TelegramLongPollingBot(){
 
-    private val tg_token = config.getString("Telegram.token")
-    private val tg_username = config.getString("Telegram.username")
-    private val tg_channel = config.getLong("Telegram.channel")
+    private val tg_token = config.getString("token")
+    private val tg_username = config.getString("username")
+    private val tg_channel = config.getLong("channel")
     val statusMessage = UptimerStatusMessage(Config(config.getJsonObject("status")))
 
     private val RECONNECT_PAUSE = 10000L

@@ -17,14 +17,14 @@ object Uptimer {
     private val scheduler = Scheduler()
 
     private var config = Config(FileUtil.openFile("config.json", DefaultConfig.DEFAULT.json))
-    private var telegramConfig = Config(FileUtil.openFile("telegram.json", DefaultConfig.TELEGRAM.json))
+    private var noticersConfig = Config(FileUtil.openFile("noticers.json", DefaultConfig.NOTICERS.json))
     private var serversConfig = Config(FileUtil.openFile("servers.json", DefaultConfig.SERVERS.json))
 
     var devMode = false
 
     val uptimerWebServer = UptimerWebServer(config.getInt("WebServer.port", 9000))
 
-    val uptimerTgNoticer: UptimerTgNoticer = UptimerTgNoticer(telegramConfig)
+    val uptimerTgNoticer: UptimerTgNoticer = UptimerTgNoticer(Config(noticersConfig.getJsonObject("Telegram")))
 
     var upMessage = "Server {serverName}({ip}) is UP!"
     var downMessage = "Server {serverName}({ip}) is DOWN!"
@@ -163,7 +163,7 @@ object Uptimer {
     }
 
     fun saveStatusId(id: Int){
-        telegramConfig.json.get("status").asJsonObject.addProperty("msgId", id)
-        FileUtil.saveFile("telegram.json", telegramConfig.json)
+        noticersConfig.json.getAsJsonObject("Telegram").get("status").asJsonObject.addProperty("msgId", id)
+        FileUtil.saveFile("noticers.json", noticersConfig.json)
     }
 }
