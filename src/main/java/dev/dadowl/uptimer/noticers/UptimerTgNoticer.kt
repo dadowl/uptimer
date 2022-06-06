@@ -3,7 +3,6 @@ package dev.dadowl.uptimer.noticers
 import dev.dadowl.uptimer.Uptimer
 import dev.dadowl.uptimer.UptimerItem
 import dev.dadowl.uptimer.UptimerLogger
-import dev.dadowl.uptimer.UptimerStatusMessage
 import dev.dadowl.uptimer.utils.Config
 import org.telegram.telegrambots.bots.TelegramLongPollingBot
 import org.telegram.telegrambots.meta.TelegramBotsApi
@@ -22,7 +21,7 @@ class UptimerTgNoticer(config: Config): TelegramLongPollingBot(){
     private val tg_token = config.getString("token")
     private val tg_username = config.getString("username")
     private val tg_channel = config.getLong("channel")
-    val statusMessage = UptimerStatusMessage(Config(config.getJsonObject("status")))
+    val statusMessage = UptimerTgStatusMessage(Config(config.getJsonObject("status")))
 
     private val RECONNECT_PAUSE = 10000L
 

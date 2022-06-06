@@ -1,8 +1,9 @@
-package dev.dadowl.uptimer
+package dev.dadowl.uptimer.noticers
 
+import dev.dadowl.uptimer.Uptimer
 import dev.dadowl.uptimer.utils.Config
 
-class UptimerStatusMessage(private val config: Config) {
+class UptimerTgStatusMessage(private val config: Config) {
 
     var id: Int = -1
     var lines: ArrayList<String> = ArrayList(listOf(
