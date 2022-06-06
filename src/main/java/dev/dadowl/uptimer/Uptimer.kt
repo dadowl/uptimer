@@ -3,6 +3,8 @@ package dev.dadowl.uptimer
 import com.coreoz.wisp.Scheduler
 import com.coreoz.wisp.schedule.Schedules
 import com.google.gson.JsonArray
+import dev.dadowl.uptimer.events.UptimerPingEvent
+import dev.dadowl.uptimer.events.UptimerEventListener
 import dev.dadowl.uptimer.noticers.UptimerTgNoticer
 import dev.dadowl.uptimer.utils.*
 import dev.dadowl.uptimer.webserver.UptimerWebServer
@@ -14,6 +16,8 @@ import kotlin.system.exitProcess
 object Uptimer {
 
     private val scheduler = Scheduler()
+
+    private val eventListeners = LinkedList<UptimerEventListener>()
 
     private var config = Config(FileUtil.openFile("config.json", DefaultConfig.DEFAULT.json))
     private var noticersConfig = Config(FileUtil.openFile("noticers.json", DefaultConfig.NOTICERS.json))
@@ -56,6 +60,8 @@ object Uptimer {
             }
             stop()
         }
+
+        addEventListener(uptimerTgNoticer)
 
         if (config.getString("upMessage").isNotEmpty()){
             upMessage = config.getString("upMessage")
@@ -155,5 +161,13 @@ object Uptimer {
     fun saveStatusId(id: Int){
         noticersConfig.json.getAsJsonObject("Telegram").get("status").asJsonObject.addProperty("msgId", id)
         FileUtil.saveFile("noticers.json", noticersConfig.json)
+    }
+
+    fun addEventListener(listener: UptimerEventListener){
+        eventListeners.add(listener)
+    }
+
+    fun notifyListeners(event: UptimerPingEvent){
+        eventListeners.forEach{ it.processEvent(event) }
     }
 }
