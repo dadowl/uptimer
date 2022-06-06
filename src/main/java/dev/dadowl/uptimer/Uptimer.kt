@@ -3,11 +3,10 @@ package dev.dadowl.uptimer
 import com.coreoz.wisp.Scheduler
 import com.coreoz.wisp.schedule.Schedules
 import com.google.gson.JsonArray
+import dev.dadowl.uptimer.noticers.UptimerTgNoticer
 import dev.dadowl.uptimer.utils.*
 import dev.dadowl.uptimer.webserver.UptimerWebServer
 import java.time.Duration
-import java.time.LocalDateTime
-import java.time.temporal.ChronoUnit
 import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.system.exitProcess
