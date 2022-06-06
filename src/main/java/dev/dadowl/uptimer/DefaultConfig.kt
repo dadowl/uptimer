@@ -25,6 +25,7 @@ enum class DefaultConfig(val json: JsonObject) {
             .add(
                 "Telegram",
                 JsonBuilder()
+                    .add("enabled", false)
                     .add("token", "")
                     .add("username", "")
                     .add("channel", -1)

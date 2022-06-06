@@ -42,17 +42,18 @@ object Uptimer {
 
         if (devMode){
 
-            if (uptimerTgNoticer.statusMessage.id != -1) {
-                UptimerLogger.warn("The status message id is currently installed. You sure to update status message id? [Y/N]")
-                val scan = Scanner(System.`in`)
-                when (scan.next().lowercase()) {
-                    "N", "n", "no" -> {
-                        stop()
+            if (uptimerTgNoticer.enabled){
+                if (uptimerTgNoticer.statusMessage.id != -1) {
+                    UptimerLogger.warn("The status message id is currently installed. You sure to update status message id? [Y/N]")
+                    val scan = Scanner(System.`in`)
+                    when (scan.next().lowercase()) {
+                        "N", "n", "no" -> {
+                            stop()
+                        }
                     }
                 }
+                uptimerTgNoticer.sendMessage("Status message", true)
             }
-
-            uptimerTgNoticer.sendMessage("Status message", true)
             stop()
         }
 

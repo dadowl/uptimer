@@ -18,6 +18,7 @@ import org.telegram.telegrambots.updatesreceivers.DefaultBotSession
 
 class UptimerTgNoticer(config: Config): TelegramLongPollingBot(){
 
+    val enabled = config.getBoolean("enabled", false)
     private val tg_token = config.getString("token")
     private val tg_username = config.getString("username")
     private val tg_channel = config.getLong("channel")
@@ -26,16 +27,18 @@ class UptimerTgNoticer(config: Config): TelegramLongPollingBot(){
     private val RECONNECT_PAUSE = 10000L
 
     init {
-        if (tg_token.isEmpty() || tg_username.isEmpty()){
-            Uptimer.stop("Telegram settings error.")
-        }
+        if (enabled) {
+            if (tg_token.isEmpty() || tg_username.isEmpty()){
+                Uptimer.stop("Telegram settings error.")
+            }
 
-        if (tg_channel == -1L){
-            UptimerLogger.warn("Telegram channel id is invalid or not found. Messages will not be sent.")
-        }
+            if (tg_channel == -1L){
+                UptimerLogger.warn("Telegram channel id is invalid or not found. Messages will not be sent.")
+            }
 
-        if (statusMessage.id == -1){
-            UptimerLogger.warn("Status message id is -1! Ignoring this function.")
+            if (statusMessage.id == -1){
+                UptimerLogger.warn("Status message id is -1! Ignoring this function.")
+            }
         }
     }
 
@@ -48,6 +51,7 @@ class UptimerTgNoticer(config: Config): TelegramLongPollingBot(){
     }
 
     fun connect() {
+        if (!enabled) return
         val telegramBotsApi = TelegramBotsApi(DefaultBotSession::class.java)
         try {
             telegramBotsApi.registerBot(this)
@@ -64,7 +68,7 @@ class UptimerTgNoticer(config: Config): TelegramLongPollingBot(){
     }
 
     fun sendMessage(text: String, dev: Boolean){
-        if (tg_channel == -1L) return
+        if (!enabled || tg_channel == -1L) return
         val msg = SendMessage()
         msg.chatId = tg_channel.toString()
         msg.text = text
@@ -89,7 +93,7 @@ class UptimerTgNoticer(config: Config): TelegramLongPollingBot(){
     override fun onUpdateReceived(update: Update?) {}
 
     fun updateStatusMessage(){
-        if (statusMessage.id == -1 || tg_channel == -1L) return
+        if (!enabled || statusMessage.id == -1 || tg_channel == -1L) return
 
         var status: String = if (Uptimer.uptimerItems.filter { it.status == UptimerItem.PingStatus.ONLINE }.size == Uptimer.uptimerItems.size){
             statusMessage.statuses["allOnline"]!!
