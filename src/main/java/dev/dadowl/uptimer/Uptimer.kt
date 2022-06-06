@@ -132,6 +132,16 @@ object Uptimer {
         }
     }
 
+    fun getItemsStatus(): String {
+        return if (uptimerItems.filter { it.status == UptimerItem.PingStatus.ONLINE }.size == uptimerItems.size){
+            "allOnline"
+        } else if (uptimerItems.filter { it.status == UptimerItem.PingStatus.OFFLINE }.size == uptimerItems.size){
+            "allOffline"
+        } else {
+            "someOffline"
+        }
+    }
+
     fun stop(){
         UptimerLogger.warn("Stopping...")
         exitProcess(0)

@@ -97,13 +97,7 @@ class UptimerTgNoticer(config: Config): TelegramLongPollingBot(){
     fun updateStatusMessage(){
         if (!enabled || statusMessage.id == -1 || tg_channel == -1L) return
 
-        var status: String = if (Uptimer.uptimerItems.filter { it.status == UptimerItem.PingStatus.ONLINE }.size == Uptimer.uptimerItems.size){
-            statusMessage.statuses["allOnline"]!!
-        } else if (Uptimer.uptimerItems.filter { it.status == UptimerItem.PingStatus.OFFLINE }.size == Uptimer.uptimerItems.size){
-            statusMessage.statuses["allOffline"]!!
-        } else {
-            statusMessage.statuses["someOffline"]!!
-        }
+        val status = statusMessage.statuses[Uptimer.getItemsStatus()] ?: "allOffline"
 
         val lines = ArrayList<String>()
         for (line in statusMessage.lines) {
@@ -118,7 +112,7 @@ class UptimerTgNoticer(config: Config): TelegramLongPollingBot(){
 
                 val groupServers = Uptimer.uptimerItems.filter { it.group == currentGroup }
                 if (groupServers.isNotEmpty()){
-                    var serversString = StringBuilder()
+                    val serversString = StringBuilder()
                     var i = 0
                     groupServers.forEach { server ->
                         i++

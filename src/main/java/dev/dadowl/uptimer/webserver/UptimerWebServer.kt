@@ -20,13 +20,24 @@ class UptimerWebServer(val port: Int = 9000) {
         httpService.get("/", Route { request, response ->
             response.type("application/json")
 
-            val array = JsonArray()
+            val jsonBuilder = JsonBuilder()
+            val serversJson = JsonBuilder()
 
-            Uptimer.uptimerItems.forEach {
-                array.add(it.toJson())
+            val groupList = Uptimer.uptimerItems.map { it.group }
+            for (group in groupList) {
+                val items = Uptimer.uptimerItems.filter { it.group == group }
+                val servers = JsonArray()
+                items.forEach { servers.add(it.toJson()) }
+                serversJson.add(group, servers).build()
             }
 
-            return@Route JsonBuilder().add("response", array).build()
+            return@Route jsonBuilder
+                .add("response",
+                    JsonBuilder()
+                        .add("status", Uptimer.getItemsStatus())
+                        .add("servers", serversJson.build())
+                    .build())
+                .build()
         })
         UptimerLogger.info("Starting web-server on port $port")
     }
