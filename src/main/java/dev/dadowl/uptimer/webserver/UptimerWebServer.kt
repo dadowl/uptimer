@@ -8,7 +8,7 @@ import spark.Route
 import spark.Service
 
 
-class UptimerWebServer(val port: Int = 9000) {
+class UptimerWebServer(private val port: Int = 9000) {
 
     private val httpService = Service.ignite()
 
