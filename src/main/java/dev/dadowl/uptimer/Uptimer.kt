@@ -22,7 +22,7 @@ object Uptimer {
 
     var devMode = false
 
-    val uptimerWebServer = UptimerWebServer()
+    val uptimerWebServer = UptimerWebServer(config.getInt("WebServer.port", 9000))
 
     val uptimerTgNoticer: UptimerTgNoticer = UptimerTgNoticer(telegramConfig)
 
@@ -82,7 +82,11 @@ object Uptimer {
             Schedules.afterInitialDelay(Schedules.fixedDelaySchedule(Duration.ofMinutes(pingEvery.toLong())), Duration.ZERO)
         )
 
-        uptimerWebServer.start()
+        if (config.getBoolean("WebServer.enable", true)) {
+            uptimerWebServer.start()
+        } else {
+            UptimerLogger.info("The web server is disabled.")
+        }
     }
 
     fun loadUptimerItems(){

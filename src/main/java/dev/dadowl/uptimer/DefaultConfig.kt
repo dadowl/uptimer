@@ -12,6 +12,12 @@ enum class DefaultConfig(val json: JsonObject) {
             .add("downTryes", 3)
             .add("upMessage", "Server {serverName}({ip}) is UP!")
             .add("downMessage", "Server {serverName}({ip}) is DOWN!")
+            .add("WebServer",
+                JsonBuilder()
+                    .add("enable", true)
+                    .add("port", 9000)
+                .build()
+            )
         .build()
     ),
     TELEGRAM(

@@ -27,6 +27,9 @@ class Config() {
     fun getBoolean(str: String): Boolean{
         return if (getVariable(str) != null) getVariable(str)!!.asBoolean else false
     }
+    fun getBoolean(str: String, defaultValue: Boolean): Boolean{
+        return if (getVariable(str) != null) getVariable(str)!!.asBoolean else defaultValue
+    }
     fun getNotBoolean(str: String): Boolean{
         return !getBoolean(str)
     }
