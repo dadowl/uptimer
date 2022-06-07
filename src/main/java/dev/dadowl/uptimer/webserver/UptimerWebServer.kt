@@ -35,7 +35,7 @@ class UptimerWebServer(private val port: Int = 9000) {
                 .add("response",
                     JsonBuilder()
                         .add("status", Uptimer.getItemsStatus())
-                        .add("servers", serversJson.build())
+                        .add("items", serversJson.build())
                     .build())
                 .build()
         })
