@@ -101,7 +101,7 @@ class UptimerTgNoticer(config: Config): TelegramLongPollingBot(), UptimerEventLi
 
         val status = statusMessage.statuses[Uptimer.getItemsStatus()] ?: "allOffline"
 
-        val lines = ArrayList<String>()
+        var finalString = ""
         for (line in statusMessage.lines) {
             var l = line
 
@@ -124,11 +124,8 @@ class UptimerTgNoticer(config: Config): TelegramLongPollingBot(), UptimerEventLi
                 }
             }
 
-            lines.add(l)
+            finalString += "$l\n"
         }
-
-        var finalString = ""
-        lines.forEach { finalString += it + "\n" }
 
         if (this.statusMessage.statusText != finalString){
             this.statusMessage.statusText = finalString
@@ -140,7 +137,7 @@ class UptimerTgNoticer(config: Config): TelegramLongPollingBot(), UptimerEventLi
         }
     }
 
-    override fun processEvent(event: UptimerPingEvent) {
+    override fun onPingEvent(event: UptimerPingEvent) {
         val uptimerItem = event.source as UptimerItem
         when(event.eventType){
             UptimerEventType.PING_ONLINE -> {

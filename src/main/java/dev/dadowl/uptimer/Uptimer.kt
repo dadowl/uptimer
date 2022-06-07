@@ -168,6 +168,6 @@ object Uptimer {
     }
 
     fun notifyListeners(event: UptimerPingEvent){
-        eventListeners.forEach{ it.processEvent(event) }
+        eventListeners.forEach{ it.onPingEvent(event) }
     }
 }
