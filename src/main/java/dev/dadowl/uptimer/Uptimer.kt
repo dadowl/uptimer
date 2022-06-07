@@ -5,6 +5,7 @@ import com.coreoz.wisp.schedule.Schedules
 import com.google.gson.JsonArray
 import dev.dadowl.uptimer.events.UptimerPingEvent
 import dev.dadowl.uptimer.events.UptimerEventListener
+import dev.dadowl.uptimer.noticers.UptimerMailNoticer
 import dev.dadowl.uptimer.noticers.UptimerTgNoticer
 import dev.dadowl.uptimer.utils.*
 import dev.dadowl.uptimer.webserver.UptimerWebServer
@@ -28,6 +29,7 @@ object Uptimer {
     val uptimerWebServer = UptimerWebServer(config.getInt("WebServer.port", 9000))
 
     val uptimerTgNoticer: UptimerTgNoticer = UptimerTgNoticer(Config(noticersConfig.getJsonObject("Telegram")))
+    val uptimerMailNoticer = UptimerMailNoticer(Config(noticersConfig.getJsonObject("mail")))
 
     var upMessage = "Server {serverName}({ip}) is UP!"
     var downMessage = "Server {serverName}({ip}) is DOWN!"
@@ -62,6 +64,7 @@ object Uptimer {
         }
 
         addEventListener(uptimerTgNoticer)
+        addEventListener(uptimerMailNoticer)
 
         if (config.getString("upMessage").isNotEmpty()){
             upMessage = config.getString("upMessage")

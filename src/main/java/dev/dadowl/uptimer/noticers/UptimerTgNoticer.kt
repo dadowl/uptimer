@@ -20,7 +20,7 @@ import org.telegram.telegrambots.updatesreceivers.DefaultBotSession
 
 class UptimerTgNoticer(config: Config): TelegramLongPollingBot(), UptimerEventListener{
 
-    val enabled = config.getBoolean("enabled", false)
+    var enabled = config.getBoolean("enabled", false)
     private val tg_token = config.getString("token")
     private val tg_username = config.getString("username")
     private val tg_channel = config.getLong("channel")
@@ -31,7 +31,8 @@ class UptimerTgNoticer(config: Config): TelegramLongPollingBot(), UptimerEventLi
     init {
         if (enabled) {
             if (tg_token.isEmpty() || tg_username.isEmpty()){
-                Uptimer.stop("Telegram settings error.")
+                UptimerLogger.warn("Telegram settings error.")
+                enabled = false
             }
 
             if (tg_channel == -1L){
@@ -141,10 +142,10 @@ class UptimerTgNoticer(config: Config): TelegramLongPollingBot(), UptimerEventLi
         val uptimerItem = event.source as UptimerItem
         when(event.eventType){
             UptimerEventType.PING_ONLINE -> {
-                Uptimer.uptimerTgNoticer.sendMessage(UptimerItem.getMessage(uptimerItem.upMsg, uptimerItem))
+                sendMessage(UptimerItem.getMessage(uptimerItem.upMsg, uptimerItem))
             }
             UptimerEventType.PING_OFFLINE -> {
-                Uptimer.uptimerTgNoticer.sendMessage(UptimerItem.getMessage(uptimerItem.downMsg, uptimerItem))
+                sendMessage(UptimerItem.getMessage(uptimerItem.downMsg, uptimerItem))
             }
         }
     }

@@ -55,6 +55,18 @@ enum class DefaultConfig(val json: JsonObject) {
                     )
                 .build()
             )
+            .add("mail",
+                JsonBuilder()
+                    .add("enabled", false)
+                    .add("smtp", "")
+                    .add("port", 465)
+                    .add("username", "")
+                    .add("password", "")
+                    .add("address", "")
+                    .add("senderName", "UptimerMailer")
+                    .add("sendTo", "")
+                .build()
+            )
         .build()
     ),
     SERVERS(
