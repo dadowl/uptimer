@@ -123,6 +123,6 @@ Placeholders for messages:
 4. downTime - offline time;
 5. ErrorCode - error code if the website is pinged, otherwise 0;
 6. status - status icon according to the current status:
- - ONLINE(\uD83D\uDFE2)
- - OFFLINE(\uD83D\uDD34)
- - PENDING(\uD83D\uDFE1)
+ - ONLINE(🟢)
+ - OFFLINE(🔴)
+ - PENDING(🟡)
