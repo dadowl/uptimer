@@ -1,120 +1,123 @@
 # Uptimer
 
-An application that monitors the status of your servers / sites and, if necessary, will write to you in the telegram channel about the fall.
+Application for tracking the status of servers
 
 ### Features
-- Telegram channel notifications;
-- Ping servers by ip, ip:port, sites;
-- Setting up messages in the config and full customization.
+- Ping servers by ip, ip:port, websites
+- Notifications in the telegram channel and to the mail
+- Web server and API
+- Server groups
+- Configuring messages in the config
+- Placeholders for messages
+- Full customization
 
 ### Requirements
 - JDK 17
 
-### Setup
+## Launch
 
-1. Run the application so that it creates a config;
-> java -jar uptimer.jar
-2. Create a telegram bot via [@BotFather](https://t.me/BotFather);
-3. Specify the username and token from the bot in the config;
-4. Specify the id of the channel where all notifications about pigs will be sent;
-5. [Add servers](https://github.com/dadowl/uptimer#adding-servers)
-6. If you want to use the message-status function, then start the application with the dev flag, then specify the message-status id in the config;
-> java -jar uptimer.jar --dev
-7. Specify after what time all servers will be pinged with pingEvery. The default is 5 minutes.
+When you turn on the program for the first time, it will generate the necessary configs to work, launch the web server on port 9000 and immediately start working.
 
-## Adding servers
+Configuration help:
+1. General config
+2. Web server
+3. Adding Servers
+4. Setting up noticers
 
-1. Fill in the servers section:
-```
- { 
- "ip": "your ip or ip:port or website",
- "serverName": "your server name",
- "services": "your services running on this server"
- }
-```
-2. If necessary, add additional servers. Note that this is a JsonArray!;
-3. If you need to specify upMessage and downMessage messages for a specific server, if they are not specified, messages for all servers from the config will be used.
+## General config
 
-## Example config
+The general parameters for the operation of the application are specified in the config.json file.
 
-```
-{
-  "other": {
-    // How often to ping the server?
-    "pingEvery": 1,
-    // Standard message if the server is online after a crash. One for all servers.
-    "upMessage": "Server {serverName}({ip}) is UP!", 
-    // Standard message if the server is down. One for all servers.
-    "downMessage": "Server {serverName}({ip}) is DOWN!", 
-    // After how many failed pings will the failure notification be displayed?
-    "downTryes": 1 
-  },
-  "Telegram": {
-    // Your Telegram bot token
-    "token": "???",
-    // Your Telegram bot username
-    "username": "???",
-    // Your Telegram channel for notifications 
-    "channel": -1, 
-    "status": {
-      // Status message ID. Can be obtained if run with the --dev flag. If -1, then disabled.
-      "msgId": 51,
-      // Line-by-line format of the status message
-      "lines": [
-        // The current status of all servers is substituted from the config from the "status" section. 
-        "{status}", 
-        "",
-        "Servers:",
-        // List of servers added to the project. Filled in according to the serverPattern below. 
-        "{servers}" 
-      ],
-       // Server template for a list of servers in state.
-       // {status} - if it works, then 🟢, if not, then - 🔴, if it is pending, that is, downTryes != downTryes in the config, then - 🟡
-       // {serverName} - server name from config
-       // {services} - services that run on this server, specified in the config
-      "serverPattern": "{status} - {serverName} - {services}", 
-      "status": {
-        // Will display a message in the status if all servers are running.
-        "allOnline": "🟢 All servers are online!",
-        // Will display a message in the status if all servers are down.
-        "allOffline": "🔴 All servers are offline!", 
-        // Will display a message in the status if some servers are down.
-        "someOffline": "🟡 Some servers are offline!" 
-      }
-    }
-  },
-  "servers": [
-    {
-      // Server ip or ip:port or domain name
-      "ip": "8.8.8.8",
-      // Server name  
-      "serverName": "Example server",
-      // Server services 
-      "services": "Example server", 
-      // This server-only message about being online after the failed pings specified in downTryes and after the server is considered offline.
-      // You can use {downTime} placeholder to show downtime seconds
-      // If this message is not specified, as in server 3, then the message from the configuration file will be used.
-      "upMessage": "Server {serverName}({ip}) is UP!  It was offline {downTime} seconds!" 
-    },
-    {
-      // Server ip or ip:port or domain name
-      "ip": "8.8.4.4",
-      // Server name 
-      "serverName": "Example server 2", 
-      // Server services
-      "services": "Example server 2", 
-      // If the server crashes after the number of failed pings is set to downTryes in the config, then this message will be displayed.
-      // If this message is not specified, as in "Example server 3", then the message from the configuration file will be used.
-      "downMessage": "Server {serverName}({ip}) is DOWN!" 
-    },
-    {
-      // Server ip or ip:port or domain name
-      "ip": "8.8.8.8",
-      // Server name 
-      "serverName": "Example server 3",
-      // Server services 
-      "services": "Example server 3" 
-    }
-  ]
-}
-```
+Let's go through the list:
+1. ping Every - indicates how often to ping the server. The value is specified in the format "5m", where 5 is the number, and m is the minutes, that is, the servers will ping every 5 minutes. You can also specify s, h, for seconds and hours respectively
+2. downTryes - indicates after how many unsuccessful pings the server will be considered offline
+3. upMessage and downMessage - messages that will be sent to the mail or telegram when the server appears online or goes offline. You can also use placeholders
+
+## Web server
+
+The web server is configured in the config file.json in the Web Server section.
+
+Here:
+1. enable - determines whether the web server is turned on or off
+2. port - the port of the web server
+3. hide Ip - is it necessary to hide the ip address of the server? It will be useful if you bring monitoring to the site and you do not need to show the ip addresses of your servers.
+
+When accessing the server, a response in json format will be output in the response object:
+The status item will indicate the current servers level
+In the items array, servers grouped by server group.
+
+Example of a response from the server:
+
+![](https://dadowl.dev/files/uptimer/request_example.jpg)
+
+## Adding Servers
+
+The servers are configured in the servers.json file.
+
+Each server has required parameters:
+1. ip - the ip address of the server that will be pinged. You can only specify an ip address or ip:port or domain.
+2. serverName - the name of the server. However, you can specify anything here, this parameter is just used for the convenience of messages.
+3. services - services that are running on this server. However, you can specify anything here, this parameter is just used for the convenience of messages.
+
+Also, you can register custom upMessage and downMessage messages on each server. You can also use placeholders.
+
+Also, the server can be added to the group. This is done through the group parameter. For example, "group": "minecraft".
+
+## Noticers setup
+
+All noticers are configured in the noticers.json file.
+
+### Telegram setup
+
+In the file above, there is a block for configuring Telegram.
+
+Let's go through the list of its parameters:
+1. enabled - determines whether the Telegram noticer is enabled or not
+2. token - the telegram bot token that is used for notifications. You can get it when creating a bot via [@BotFather](https://t.me/BotFather )
+3. username - the username of the bot, it is also obtained through [@BotFather](https://t.me/BotFather )
+4. channel - the channel where ping status messages will be sent. For example, the server is offline or has become online again.
+5. deleteAfter - determines after how long to delete messages. Accepts in the same form as pingEvery
+6. status - status message settings
+
+Status message is a unique feature of this application.
+It will allow you to create a message in your telegram channel and pin it. In this case, after each ping, information about the servers will be updated in the status message, if the status has not changed after the previous ping, then nothing will happen.
+
+Parameters:
+1. msgId - the id of the status message, it is this message that will be updated. You can either specify it manually, or by running the application with the --dev flag
+2. lines - status message lines, placeholders here:
+   {status} - the general status of the servers, depending on the current state, is set in the statuses section below
+   {group:group_name} - server group. Instead of group_name, the name of the server group is specified. When generating a status message, all servers with the specified group will be displayed here. If there are no servers with such a group, then this line will not change.
+3. serverPattern - server string that will be output when calling servers in {group:group_name}. You can also specify any message using placeholders here
+4. statuses - here you specify what will be displayed in the status message lines in the placeholder {status}
+   
+There are three parameters here:
+1. allOnline - if all servers are online
+2. allOffline - if all servers are offline
+3. someOffline - if some servers are turned off
+
+Example of a status message:
+![](https://dadowl.dev/files/uptimer/status_example.jpg)
+
+### Email setup
+
+In the file listed above, there is a block for configuring Mail.
+
+Let's go through the list of its parameters:
+1. enabled - determines whether mail noticer is enabled or not
+2. smtp - smtp mail server
+3. port - smtp server port
+4. username - the name of the user from whom the email will be sent
+5. password - the password of the user from whom the email will be sent
+6. address - the email from which the email will be sent
+7. senderName - the sender's name
+8. sendTo - indicates which mail the status messages will be sent to
+
+### Placeholders for messages
+
+Placeholders for messages:
+1. ip - ip address of the server;
+2. serverName - the name of the server;
+3. services - services running on this host;
+4. downTime - offline time;
+5. ErrorCode - error code if the website is pinged, otherwise 0;
+6. status - status icon according to the current status (ONLINE("\uD83D\uDFE2"), OFFLINE("\uD83D\uDD34"), PENDING("\uD83D\uDFE1")).
