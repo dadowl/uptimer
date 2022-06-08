@@ -19,19 +19,20 @@ Application for tracking the status of servers
 When you turn on the program for the first time, it will generate the necessary configs to work, launch the web server on port 9000 and immediately start working.
 
 Configuration help:
-1. [General config](#general-config)
-2. [Web server](#web-server)
-3. [Adding Servers](#adding-servers)
-4. [Noticers setup](#noticers-setup)
+1. [General config](https://github.com/dadowl/uptimer#general-config)
+2. [Web server](https://github.com/dadowl/uptimer#web-server)
+3. [Adding Servers](https://github.com/dadowl/uptimer#adding-servers)
+4. [Noticers setup](https://github.com/dadowl/uptimer#noticers-setup)
+5. [Placeholders for messages](https://github.com/dadowl/uptimer#placeholders-for-messages)
 
 ## General config
 
 The general parameters for the operation of the application are specified in the config.json file.
 
 Let's go through the list:
-1. ping Every - indicates how often to ping the server. The value is specified in the format "5m", where 5 is the number, and m is the minutes, that is, the servers will ping every 5 minutes. You can also specify s, h, for seconds and hours respectively
+1. pingEvery - indicates how often to ping the server. The value is specified in the format "5m", where 5 is the number, and m is the minutes, that is, the servers will ping every 5 minutes. You can also specify s, h, for seconds and hours respectively
 2. downTryes - indicates after how many unsuccessful pings the server will be considered offline
-3. upMessage and downMessage - messages that will be sent to the mail or telegram when the server appears online or goes offline. You can also use placeholders
+3. upMessage and downMessage - messages that will be sent to the mail or telegram when the server appears online or goes offline. You can also use [placeholders](https://github.com/dadowl/uptimer#placeholders-for-messages)
 
 ## Web server
 
@@ -59,7 +60,7 @@ Each server has required parameters:
 2. serverName - the name of the server. However, you can specify anything here, this parameter is just used for the convenience of messages.
 3. services - services that are running on this server. However, you can specify anything here, this parameter is just used for the convenience of messages.
 
-Also, you can register custom upMessage and downMessage messages on each server. You can also use placeholders.
+Also, you can register custom upMessage and downMessage messages on each server. You can also use [placeholders]((https://github.com/dadowl/uptimer#placeholders-for-messages)).
 
 Also, the server can be added to the group. This is done through the group parameter. For example, "group": "minecraft".
 
@@ -76,7 +77,7 @@ Let's go through the list of its parameters:
 2. token - the telegram bot token that is used for notifications. You can get it when creating a bot via [@BotFather](https://t.me/BotFather )
 3. username - the username of the bot, it is also obtained through [@BotFather](https://t.me/BotFather )
 4. channel - the channel where ping status messages will be sent. For example, the server is offline or has become online again.
-5. deleteAfter - determines after how long to delete messages. Accepts in the same form as pingEvery
+5. deleteAfter - determines after how long to delete messages. Accepts in the same form as [pingEvery](https://github.com/dadowl/uptimer#general-config)
 6. status - status message settings
 
 Status message is a unique feature of this application.
