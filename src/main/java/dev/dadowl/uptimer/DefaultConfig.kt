@@ -16,6 +16,7 @@ enum class DefaultConfig(val json: JsonObject) {
                 JsonBuilder()
                     .add("enable", true)
                     .add("port", 9000)
+                    .add("hideIp", true)
                 .build()
             )
         .build()

@@ -8,7 +8,7 @@ import spark.Route
 import spark.Service
 
 
-class UptimerWebServer(private val port: Int = 9000) {
+class UptimerWebServer(private val port: Int = 9000, private val hideIp: Boolean = true) {
 
     private val httpService = Service.ignite()
 
@@ -27,7 +27,7 @@ class UptimerWebServer(private val port: Int = 9000) {
             for (group in groupList) {
                 val items = Uptimer.uptimerItems.filter { it.group == group }
                 val servers = JsonArray()
-                items.forEach { servers.add(it.toJson()) }
+                items.forEach { servers.add(it.toJson(hideIp)) }
                 serversJson.add(group, servers).build()
             }
 

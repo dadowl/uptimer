@@ -26,7 +26,7 @@ object Uptimer {
 
     var devMode = false
 
-    val uptimerWebServer = UptimerWebServer(config.getInt("WebServer.port", 9000))
+    val uptimerWebServer = UptimerWebServer(config.getInt("WebServer.port", 9000), config.getBoolean("WebServer.hideIp", true))
 
     val uptimerTgNoticer: UptimerTgNoticer = UptimerTgNoticer(Config(noticersConfig.getJsonObject("Telegram")))
     val uptimerMailNoticer = UptimerMailNoticer(Config(noticersConfig.getJsonObject("mail")))

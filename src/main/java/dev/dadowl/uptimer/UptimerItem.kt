@@ -74,13 +74,19 @@ class UptimerItem(
         return "UptimerItem(group = $group, ip = $ip, services = $services, status = $status)"
     }
 
-    fun toJson(): JsonObject{
-        return JsonBuilder()
+    fun toJson(hideIp: Boolean = true): JsonObject{
+        val builder = JsonBuilder()
             .add("group", group)
-            .add("ip",this.ip)
+
+        if (!hideIp){
+            builder.add("ip",this.ip)
+        }
+
+        builder
             .add("services", this.services)
             .add("status", this.status.toString())
-        .build()
+
+        return builder.build()
     }
 
     fun ping(){
