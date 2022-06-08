@@ -1,5 +1,6 @@
 package dev.dadowl.uptimer.noticers
 
+import com.coreoz.wisp.schedule.Schedules
 import dev.dadowl.uptimer.Uptimer
 import dev.dadowl.uptimer.UptimerItem
 import dev.dadowl.uptimer.UptimerLogger
@@ -7,15 +8,20 @@ import dev.dadowl.uptimer.events.UptimerPingEvent
 import dev.dadowl.uptimer.events.UptimerEventListener
 import dev.dadowl.uptimer.events.UptimerEventType
 import dev.dadowl.uptimer.utils.Config
+import dev.dadowl.uptimer.utils.Utils
 import org.telegram.telegrambots.bots.TelegramLongPollingBot
 import org.telegram.telegrambots.meta.TelegramBotsApi
 import org.telegram.telegrambots.meta.api.methods.pinnedmessages.PinChatMessage
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText
 import org.telegram.telegrambots.meta.api.objects.Update
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException
 import org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException
 import org.telegram.telegrambots.updatesreceivers.DefaultBotSession
+import java.time.Duration
+import java.time.LocalDate
+import java.time.LocalDateTime
 
 
 class UptimerTgNoticer(config: Config): TelegramLongPollingBot(), UptimerEventListener{
@@ -25,6 +31,7 @@ class UptimerTgNoticer(config: Config): TelegramLongPollingBot(), UptimerEventLi
     private val tg_username = config.getString("username")
     private val tg_channel = config.getLong("channel")
     val statusMessage = UptimerTgStatusMessage(Config(config.getJsonObject("status")))
+    val deleteAfter = config.getString("deleteAfter", "1h")
 
     private val RECONNECT_PAUSE = 10000L
 
@@ -41,6 +48,12 @@ class UptimerTgNoticer(config: Config): TelegramLongPollingBot(), UptimerEventLi
 
             if (statusMessage.id == -1){
                 UptimerLogger.warn("Status message id is -1! Ignoring this function.")
+            }
+
+            if (deleteAfter.isEmpty()){
+                UptimerLogger.warn("Messages wil not be deleted.")
+            } else {
+                UptimerLogger.info("Messages will be deleted after $deleteAfter!")
             }
         } else {
             UptimerLogger.warn("Telegram noticer is disabled.")
@@ -85,6 +98,8 @@ class UptimerTgNoticer(config: Config): TelegramLongPollingBot(), UptimerEventLi
                 UptimerLogger.info("Status message id saved in config file.")
                 val pin = PinChatMessage(tg_channel.toString(), send.messageId, false)
                 execute(pin)
+            } else {
+                deleteMessageDelayed(send.messageId)
             }
         } catch (e: TelegramApiException) {
             e.printStackTrace()
@@ -147,6 +162,34 @@ class UptimerTgNoticer(config: Config): TelegramLongPollingBot(), UptimerEventLi
             UptimerEventType.PING_OFFLINE -> {
                 sendMessage(UptimerItem.getMessage(uptimerItem.downMsg, uptimerItem))
             }
+        }
+    }
+
+    private fun deleteMessageDelayed(msgId: Int){
+        if (deleteAfter.isEmpty()) return
+
+        val deleteValue = if (deleteAfter.contains("h")){
+            LocalDateTime.now().plusHours(deleteAfter.substring(0, deleteAfter.length - 1).toLong())
+        } else if (deleteAfter.contains("s")) {
+            LocalDateTime.now().plusSeconds(deleteAfter.substring(0, deleteAfter.length - 1).toLong())
+        } else {
+            LocalDateTime.now().plusMinutes(deleteAfter.substring(0, deleteAfter.length - 1).toLong())
+        }
+
+        UptimerLogger.info("Message will be deleted at ${Utils.getOnlyTime(deleteValue)}.")
+
+        Uptimer.scheduler.schedule({deleteMessage(msgId)}, Schedules.executeAt(Utils.getOnlyTime(deleteValue)))
+    }
+
+    private fun deleteMessage(id: Int){
+        val delete = DeleteMessage()
+        delete.messageId = id
+        delete.chatId = tg_channel.toString()
+
+        try {
+            execute(delete)
+        } catch (e: Exception){
+            e.printStackTrace()
         }
     }
 }

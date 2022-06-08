@@ -38,6 +38,10 @@ class Config() {
         return if (getVariable(str) != null) getVariable(str)!!.asString else ""
     }
 
+    fun getString(str: String, defaultValue: String): String{
+        return if (getVariable(str) != null) getVariable(str)!!.asString else defaultValue
+    }
+
     fun getLong(str: String): Long{
         return if (getVariable(str) != null) getVariable(str)!!.asLong else -1L
     }

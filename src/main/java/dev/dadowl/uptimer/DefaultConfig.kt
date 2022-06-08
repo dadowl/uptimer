@@ -8,7 +8,7 @@ enum class DefaultConfig(val json: JsonObject) {
 
     DEFAULT(
         JsonBuilder()
-            .add("pingEvery", 5)
+            .add("pingEvery", "1m")
             .add("downTryes", 3)
             .add("upMessage", "Server {serverName}({ip}) is UP!")
             .add("downMessage", "Server {serverName}({ip}) is DOWN!")
@@ -30,8 +30,8 @@ enum class DefaultConfig(val json: JsonObject) {
                     .add("token", "")
                     .add("username", "")
                     .add("channel", -1)
-                    .add(
-                        "status",
+                    .add("deleteAfter", "1h")
+                    .add("status",
                         JsonBuilder()
                             .add("msgId", -1)
                             .add(
@@ -40,12 +40,11 @@ enum class DefaultConfig(val json: JsonObject) {
                                     .add("{status}")
                                     .add("")
                                     .add("Servers:")
-                                    .add("{servers}")
+                                    .add("{group:servers}")
                                     .build()
                             )
                             .add("serverPattern", "{status} - {serverName} - {services}")
-                            .add(
-                                "statuses",
+                            .add("statuses",
                                 JsonBuilder()
                                     .add("allOnline", "\uD83D\uDFE2 All servers are online!")
                                     .add("allOffline", "\uD83D\uDD34 All servers are offline!")

@@ -16,7 +16,7 @@ import kotlin.system.exitProcess
 
 object Uptimer {
 
-    private val scheduler = Scheduler()
+    val scheduler = Scheduler()
 
     private val eventListeners = LinkedList<UptimerEventListener>()
 
@@ -33,7 +33,7 @@ object Uptimer {
 
     var upMessage = "Server {serverName}({ip}) is UP!"
     var downMessage = "Server {serverName}({ip}) is DOWN!"
-    var pingEvery = 5
+    var pingEvery = "5m"
     var downTryes = 3
 
     val uptimerItems = ArrayList<UptimerItem>()
@@ -77,18 +77,26 @@ object Uptimer {
             UptimerLogger.info("Down message is empty in config. Use default message.")
         }
 
-        pingEvery = config.getInt("pingEvery", pingEvery)
-        UptimerLogger.info("Ping servers every $pingEvery minute!")
+        pingEvery = config.getString("pingEvery", pingEvery)
+        UptimerLogger.info("Ping servers every $pingEvery!")
         downTryes = config.getInt("downTryes", downTryes)
         UptimerLogger.info("The server will be considered offline after $downTryes failed ping attempts.")
 
         loadUptimerItems()
 
+        val pingValue = if (pingEvery.contains("h")){
+            Duration.ofHours(pingEvery.substring(0, pingEvery.length - 1).toLong())
+        } else if (pingEvery.contains("s")) {
+            Duration.ofSeconds(pingEvery.substring(0, pingEvery.length - 1).toLong())
+        } else {
+            Duration.ofMinutes(pingEvery.substring(0, pingEvery.length - 1).toLong())
+        }
+
         scheduler.schedule({
                 uptimerItems.forEach { it.ping() }
                 uptimerTgNoticer.updateStatusMessage()
             },
-            Schedules.afterInitialDelay(Schedules.fixedDelaySchedule(Duration.ofMinutes(pingEvery.toLong())), Duration.ZERO)
+            Schedules.afterInitialDelay(Schedules.fixedDelaySchedule(pingValue), Duration.ZERO)
         )
 
         if (config.getBoolean("WebServer.enable", true)) {
