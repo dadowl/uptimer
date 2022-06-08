@@ -92,11 +92,12 @@ Parameters:
 4. statuses - here you specify what will be displayed in the status message lines in the placeholder {status}
    
 There are three parameters here:
-1. allOnline - if all servers are online
-2. allOffline - if all servers are offline
-3. someOffline - if some servers are turned off
+- allOnline - if all servers are online
+- allOffline - if all servers are offline
+- someOffline - if some servers are turned off
 
 Example of a status message:
+
 ![](https://dadowl.dev/files/uptimer/status_example.jpg)
 
 ### Email setup
@@ -121,4 +122,7 @@ Placeholders for messages:
 3. services - services running on this host;
 4. downTime - offline time;
 5. ErrorCode - error code if the website is pinged, otherwise 0;
-6. status - status icon according to the current status (ONLINE("\uD83D\uDFE2"), OFFLINE("\uD83D\uDD34"), PENDING("\uD83D\uDFE1")).
+6. status - status icon according to the current status:
+ - ONLINE(\uD83D\uDFE2)
+ - OFFLINE(\uD83D\uDD34)
+ - PENDING(\uD83D\uDFE1)
