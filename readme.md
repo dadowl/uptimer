@@ -121,7 +121,7 @@ Placeholders for messages:
 2. serverName - the name of the server;
 3. services - services running on this host;
 4. downTime - offline time;
-5. ErrorCode - error code if the website is pinged, otherwise 0;
+5. errorCode - error code if the website is pinged, otherwise 0;
 6. status - status icon according to the current status:
  - ONLINE(🟢)
  - OFFLINE(🔴)
