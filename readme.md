@@ -19,10 +19,10 @@ Application for tracking the status of servers
 When you turn on the program for the first time, it will generate the necessary configs to work, launch the web server on port 9000 and immediately start working.
 
 Configuration help:
-1. General config
-2. Web server
-3. Adding Servers
-4. Setting up noticers
+1. [General config](#general-config)
+2. [Web server](#web-server)
+3. [Adding Servers](#adding-servers)
+4. [Noticers setup](#noticers-setup)
 
 ## General config
 
