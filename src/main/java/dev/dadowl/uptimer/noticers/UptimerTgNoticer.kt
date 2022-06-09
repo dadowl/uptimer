@@ -31,7 +31,8 @@ class UptimerTgNoticer(config: Config): TelegramLongPollingBot(), UptimerEventLi
     private val tg_username = config.getString("username")
     private val tg_channel = config.getLong("channel")
     val statusMessage = UptimerTgStatusMessage(Config(config.getJsonObject("status")))
-    val deleteAfter = config.getString("deleteAfter", "1h")
+    private val deleteAfter = config.getString("deleteAfter", "1h")
+    var deleteValue = LocalDateTime.now()
 
     private val RECONNECT_PAUSE = 10000L
 
@@ -53,7 +54,18 @@ class UptimerTgNoticer(config: Config): TelegramLongPollingBot(), UptimerEventLi
             if (deleteAfter.isEmpty()){
                 UptimerLogger.warn("Messages wil not be deleted.")
             } else {
-                UptimerLogger.info("Messages will be deleted after $deleteAfter!")
+                var delValue = deleteAfter.substring(0, deleteAfter.length - 1).toLong()
+                if (delValue <= 0) delValue = 1
+
+                deleteValue = if (deleteAfter.contains("h")){
+                    LocalDateTime.now().plusHours(delValue)
+                } else if (deleteAfter.contains("s")) {
+                    LocalDateTime.now().plusSeconds(delValue)
+                } else {
+                    LocalDateTime.now().plusMinutes(delValue)
+                }
+
+                UptimerLogger.info("Messages will be deleted after $delValue${Utils.lastChar(deleteAfter)}!")
             }
         } else {
             UptimerLogger.warn("Telegram noticer is disabled.")
@@ -168,13 +180,7 @@ class UptimerTgNoticer(config: Config): TelegramLongPollingBot(), UptimerEventLi
     private fun deleteMessageDelayed(msgId: Int){
         if (deleteAfter.isEmpty()) return
 
-        val deleteValue = if (deleteAfter.contains("h")){
-            LocalDateTime.now().plusHours(deleteAfter.substring(0, deleteAfter.length - 1).toLong())
-        } else if (deleteAfter.contains("s")) {
-            LocalDateTime.now().plusSeconds(deleteAfter.substring(0, deleteAfter.length - 1).toLong())
-        } else {
-            LocalDateTime.now().plusMinutes(deleteAfter.substring(0, deleteAfter.length - 1).toLong())
-        }
+
 
         UptimerLogger.info("Message will be deleted at ${Utils.getOnlyTime(deleteValue)}.")
 

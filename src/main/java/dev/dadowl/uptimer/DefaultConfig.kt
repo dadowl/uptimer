@@ -8,7 +8,7 @@ enum class DefaultConfig(val json: JsonObject) {
 
     DEFAULT(
         JsonBuilder()
-            .add("pingEvery", "1m")
+            .add("pingEvery", "5m")
             .add("downTryes", 3)
             .add("upMessage", "Server {serverName}({ip}) is UP!")
             .add("downMessage", "Server {serverName}({ip}) is DOWN!")

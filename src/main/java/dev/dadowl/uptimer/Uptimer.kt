@@ -77,20 +77,27 @@ object Uptimer {
             UptimerLogger.info("Down message is empty in config. Use default message.")
         }
 
-        pingEvery = config.getString("pingEvery", pingEvery)
-        UptimerLogger.info("Ping servers every $pingEvery!")
         downTryes = config.getInt("downTryes", downTryes)
+        if (downTryes <= 0) downTryes = 1
         UptimerLogger.info("The server will be considered offline after $downTryes failed ping attempts.")
 
-        loadUptimerItems()
+        pingEvery = config.getString("pingEvery", pingEvery)
+        if(pingEvery.isEmpty()) pingEvery = "5m"
+
+        var pingVal = pingEvery.substring(0, pingEvery.length - 1).toLong()
+        if (pingVal <= 0) pingVal = 1
 
         val pingValue = if (pingEvery.contains("h")){
-            Duration.ofHours(pingEvery.substring(0, pingEvery.length - 1).toLong())
+            Duration.ofHours(pingVal)
         } else if (pingEvery.contains("s")) {
-            Duration.ofSeconds(pingEvery.substring(0, pingEvery.length - 1).toLong())
+            Duration.ofSeconds(pingVal)
         } else {
-            Duration.ofMinutes(pingEvery.substring(0, pingEvery.length - 1).toLong())
+            Duration.ofMinutes(pingVal)
         }
+
+        UptimerLogger.info("Ping servers every $pingVal${Utils.lastChar(pingEvery)}!")
+
+        loadUptimerItems()
 
         scheduler.schedule({
                 uptimerItems.forEach { it.ping() }

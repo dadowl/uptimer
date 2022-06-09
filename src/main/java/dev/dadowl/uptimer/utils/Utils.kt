@@ -37,4 +37,8 @@ object Utils {
         return date.format(timeFormat)
     }
 
+    fun lastChar(str: String): String{
+        return str.toCharArray()[str.length - 1].toString()
+    }
+
 }
