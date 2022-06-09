@@ -132,14 +132,21 @@ class UptimerItem(
 
             this.downTryes++
         }
-        if (online && this.status == PingStatus.OFFLINE){
-            this.status = PingStatus.ONLINE
-            this.downTryes = 0
-            this.errorCode = 0
-            Uptimer.notifyListeners(UptimerPingEvent(this, UptimerEventType.PING_ONLINE))
-        }
-        if (online && this.status == PingStatus.ONLINE) {
-            UptimerLogger.info("$ip is UP")
+        if (online) {
+            if (this.status == PingStatus.OFFLINE){
+                this.status = PingStatus.ONLINE
+                this.downTryes = 0
+                this.errorCode = 0
+                Uptimer.notifyListeners(UptimerPingEvent(this, UptimerEventType.PING_ONLINE))
+            }
+            if (this.status == PingStatus.PENDING){
+                this.status = PingStatus.ONLINE
+                this.downTryes = 0
+                this.errorCode = 0
+            }
+            if (this.status == PingStatus.ONLINE) {
+                UptimerLogger.info("$ip is UP")
+            }
         }
     }
 
