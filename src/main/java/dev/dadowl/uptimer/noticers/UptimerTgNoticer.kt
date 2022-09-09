@@ -180,8 +180,6 @@ class UptimerTgNoticer(config: Config): TelegramLongPollingBot(), UptimerEventLi
     private fun deleteMessageDelayed(msgId: Int){
         if (deleteAfter.isEmpty()) return
 
-
-
         UptimerLogger.info("Message will be deleted at ${Utils.getOnlyTime(deleteValue)}.")
 
         Uptimer.scheduler.schedule({deleteMessage(msgId)}, Schedules.executeAt(Utils.getOnlyTime(deleteValue)))
