@@ -32,7 +32,7 @@ class UptimerTgNoticer(config: Config): TelegramLongPollingBot(), UptimerEventLi
     private val tg_channel = config.getLong("channel")
     val statusMessage = UptimerTgStatusMessage(Config(config.getJsonObject("status")))
     private val deleteAfter = config.getString("deleteAfter", "1h")
-    var deleteValue = LocalDateTime.now()
+    private var delValue = 1L
 
     private val RECONNECT_PAUSE = 10000L
 
@@ -54,16 +54,8 @@ class UptimerTgNoticer(config: Config): TelegramLongPollingBot(), UptimerEventLi
             if (deleteAfter.isEmpty()){
                 UptimerLogger.warn("Messages wil not be deleted.")
             } else {
-                var delValue = deleteAfter.substring(0, deleteAfter.length - 1).toLong()
+                delValue = deleteAfter.substring(0, deleteAfter.length - 1).toLong()
                 if (delValue <= 0) delValue = 1
-
-                deleteValue = if (deleteAfter.contains("h")){
-                    LocalDateTime.now().plusHours(delValue)
-                } else if (deleteAfter.contains("s")) {
-                    LocalDateTime.now().plusSeconds(delValue)
-                } else {
-                    LocalDateTime.now().plusMinutes(delValue)
-                }
 
                 UptimerLogger.info("Messages will be deleted after $delValue${Utils.lastChar(deleteAfter)}!")
             }
@@ -180,9 +172,11 @@ class UptimerTgNoticer(config: Config): TelegramLongPollingBot(), UptimerEventLi
     private fun deleteMessageDelayed(msgId: Int){
         if (deleteAfter.isEmpty()) return
 
-        UptimerLogger.info("Message will be deleted at ${Utils.getOnlyTime(deleteValue)}.")
+        val deleteAt = getDeleteTimeAt()
 
-        Uptimer.scheduler.schedule({deleteMessage(msgId)}, Schedules.executeAt(Utils.getOnlyTime(deleteValue)))
+        UptimerLogger.info("Message will be deleted at ${Utils.getOnlyTime(deleteAt)}.")
+
+        Uptimer.scheduler.schedule({deleteMessage(msgId)}, Schedules.executeAt(Utils.getOnlyTime(deleteAt)))
     }
 
     private fun deleteMessage(id: Int){
@@ -194,6 +188,16 @@ class UptimerTgNoticer(config: Config): TelegramLongPollingBot(), UptimerEventLi
             execute(delete)
         } catch (e: Exception){
             e.printStackTrace()
+        }
+    }
+
+    private fun getDeleteTimeAt(): LocalDateTime{
+        return if (deleteAfter.contains("h")){
+            LocalDateTime.now().plusHours(delValue)
+        } else if (deleteAfter.contains("s")) {
+            LocalDateTime.now().plusSeconds(delValue)
+        } else {
+            LocalDateTime.now().plusMinutes(delValue)
         }
     }
 }
