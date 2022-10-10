@@ -47,7 +47,6 @@ object Uptimer {
         uptimerTgNoticer.connect()
 
         if (devMode){
-
             if (uptimerTgNoticer.enabled){
                 if (uptimerTgNoticer.statusMessage.id != -1) {
                     UptimerLogger.warn("The status message id is currently installed. You sure to update status message id? [Y/N]")
@@ -69,12 +68,12 @@ object Uptimer {
         if (config.getString("upMessage").isNotEmpty()){
             upMessage = config.getString("upMessage")
         } else {
-            UptimerLogger.info("Up message is empty in config. Use default message.")
+            UptimerLogger.warn("Up message is empty in config. Use default message.")
         }
         if (config.getString("downMessage").isNotEmpty()){
             downMessage = config.getString("downMessage")
         } else {
-            UptimerLogger.info("Down message is empty in config. Use default message.")
+            UptimerLogger.warn("Down message is empty in config. Use default message.")
         }
 
         downTryes = config.getInt("downTryes", downTryes)
@@ -128,9 +127,6 @@ object Uptimer {
         }
 
         jarray.forEach{ item ->
-            if (item.asJsonObject.get("upMessage") == null) item.asJsonObject.addProperty("upMessage", upMessage)
-            if (item.asJsonObject.get("downMessage") == null) item.asJsonObject.addProperty("downMessage", downMessage)
-
             val it = UptimerItem(item.asJsonObject)
             var corrected = false
             if (it.ip.startsWith("http")) {
@@ -145,7 +141,7 @@ object Uptimer {
             }
             if (corrected){
                 uptimerItems.add(it)
-                UptimerLogger.info("Loaded ${it.toStringMain()}")
+                UptimerLogger.info("Loaded ${it}")
             } else {
                 UptimerLogger.warn("Skipped - ${it.toStringMain()} - wrong IP!")
             }
@@ -167,7 +163,7 @@ object Uptimer {
     }
 
     fun stop(){
-        UptimerLogger.warn("Stopping...")
+        UptimerLogger.info("Stopping...")
         exitProcess(0)
     }
 
@@ -187,5 +183,13 @@ object Uptimer {
 
     fun notifyListeners(event: UptimerPingEvent){
         eventListeners.forEach{ it.onPingEvent(event) }
+    }
+
+    fun getDefaultUpMessageForGroup(group: String): String{
+        return config.getString("groupsDefaultMessages.$group.upMessage")
+    }
+
+    fun getDefaultDownMessageForGroup(group: String): String{
+        return config.getString("groupsDefaultMessages.$group.downMessage")
     }
 }

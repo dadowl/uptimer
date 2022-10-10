@@ -1,5 +1,7 @@
 package dev.dadowl.uptimer.utils
 
+import com.google.gson.JsonObject
+import dev.dadowl.uptimer.Uptimer
 import org.apache.commons.validator.routines.InetAddressValidator
 import java.net.URL
 import java.time.LocalDateTime
