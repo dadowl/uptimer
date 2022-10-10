@@ -4,9 +4,9 @@ import com.coreoz.wisp.schedule.Schedules
 import dev.dadowl.uptimer.Uptimer
 import dev.dadowl.uptimer.UptimerItem
 import dev.dadowl.uptimer.UptimerLogger
-import dev.dadowl.uptimer.events.UptimerPingEvent
 import dev.dadowl.uptimer.events.UptimerEventListener
 import dev.dadowl.uptimer.events.UptimerEventType
+import dev.dadowl.uptimer.events.UptimerPingEvent
 import dev.dadowl.uptimer.utils.Config
 import dev.dadowl.uptimer.utils.Utils
 import org.telegram.telegrambots.bots.TelegramLongPollingBot
@@ -19,8 +19,6 @@ import org.telegram.telegrambots.meta.api.objects.Update
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException
 import org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException
 import org.telegram.telegrambots.updatesreceivers.DefaultBotSession
-import java.time.Duration
-import java.time.LocalDate
 import java.time.LocalDateTime
 
 

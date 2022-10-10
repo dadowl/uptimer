@@ -1,10 +1,9 @@
 package dev.dadowl.uptimer
 
 import com.google.gson.JsonObject
-import dev.dadowl.uptimer.events.UptimerPingEvent
 import dev.dadowl.uptimer.events.UptimerEventType
+import dev.dadowl.uptimer.events.UptimerPingEvent
 import dev.dadowl.uptimer.utils.JsonBuilder
-import dev.dadowl.uptimer.utils.Utils
 import java.io.IOException
 import java.net.*
 import java.time.LocalDateTime
