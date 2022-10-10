@@ -128,23 +128,26 @@ object Uptimer {
         }
 
         jarray.forEach{ item ->
-            val it = UptimerItem(item.asJsonObject)
-            var corrected = false
-            if (it.ip.startsWith("http")) {
-                if (Utils.isValidURL(it.ip))
-                    corrected = true
-            } else if (it.ip.split(":").size > 1){
-                if (Utils.isValidIp(it.ip.split(":")[0]))
-                    corrected = true
-            } else {
-                if (Utils.isValidIp(it.ip))
-                    corrected = true
-            }
-            if (corrected){
+            val jsonData = Config(item.asJsonObject)
+            val type: UptimerItemType
+            val value =
+                if (jsonData.getString("host").isNotEmpty()) {
+                    type = UptimerItemType.HOST
+                    jsonData.getString("host")
+                } else if (jsonData.getString("site").isNotEmpty()) {
+                    type = UptimerItemType.SITE
+                    jsonData.getString("site")
+                } else {
+                    type = UptimerItemType.IP
+                    jsonData.getString("ip")
+                }
+            val isValid = type.checkValid(value)
+            if (isValid) {
+                val it = UptimerItem(item.asJsonObject, value, type)
                 uptimerItems.add(it)
-                UptimerLogger.info("Loaded ${it}")
+                UptimerLogger.info("Loaded ${it.toStringMain()}")
             } else {
-                UptimerLogger.warn("Skipped - ${it.toStringMain()} - wrong IP!")
+                UptimerLogger.warn("Skipped - $type:$value - wrong IP!")
             }
         }
 

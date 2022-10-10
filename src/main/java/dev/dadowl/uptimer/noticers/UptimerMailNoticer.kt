@@ -69,10 +69,10 @@ class UptimerMailNoticer(config: Config) : UptimerEventListener {
         val uptimerItem = event.source as UptimerItem
         when(event.eventType){
             UptimerEventType.PING_ONLINE -> {
-                sendLetter("${uptimerItem.ip} is UP", UptimerItem.getMessage(uptimerItem.upMsg, uptimerItem))
+                sendLetter("${uptimerItem.value} is UP", UptimerItem.getMessage(uptimerItem.upMsg, uptimerItem))
             }
             UptimerEventType.PING_OFFLINE -> {
-                sendLetter("${uptimerItem.ip} is DOWN", UptimerItem.getMessage(uptimerItem.downMsg, uptimerItem))
+                sendLetter("${uptimerItem.value} is DOWN", UptimerItem.getMessage(uptimerItem.downMsg, uptimerItem))
             }
         }
     }

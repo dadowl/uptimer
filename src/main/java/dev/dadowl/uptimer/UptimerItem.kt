@@ -11,9 +11,10 @@ import java.time.temporal.ChronoUnit
 
 
 class UptimerItem(
-    var ip: String,
+    var value: String,
     val serverName: String,
-    val services: String
+    val services: String,
+    val type: UptimerItemType
 ) {
 
     companion object {
@@ -21,7 +22,7 @@ class UptimerItem(
             var message = msg
 
             if (message.contains("{ip}")) {
-                message = message.replace("{ip}", item.ip)
+                message = message.replace("{ip}", item.value)
             }
             if (message.contains("{serverName}")) {
                 message = message.replace("{serverName}", item.serverName)
@@ -59,7 +60,12 @@ class UptimerItem(
         PENDING("\uD83D\uDFE1")
     }
 
-    constructor(json: JsonObject) : this(json.get("ip").asString, json.get("serverName").asString, json.get("services").asString) {
+    constructor(json: JsonObject, value: String, type: UptimerItemType) : this(
+        value,
+        json.get("serverName").asString,
+        json.get("services").asString,
+        type
+    ) {
         if (json.get("group") != null && json.get("group").asString.isNotEmpty()) {
             group = json.get("group").asString
         }
@@ -81,11 +87,11 @@ class UptimerItem(
     }
 
     fun toStringMain(): String {
-        return "UptimerItem(group = $group, ip = $ip, services = $services)"
+        return "UptimerItem(group = $group, value = $value, type: ${type}, services = $services)"
     }
 
     override fun toString(): String {
-        return "UptimerItem(group = $group, ip = $ip, services = $services, status = $status, upMsg = $upMsg, downMsg = $downMsg)"
+        return "UptimerItem(group = $group, value = $value, type: ${type},  services = $services, status = $status, upMsg = $upMsg, downMsg = $downMsg)"
     }
 
     fun toJson(hideIp: Boolean = true): JsonObject {
@@ -93,7 +99,7 @@ class UptimerItem(
             .add("group", group)
 
         if (!hideIp) {
-            builder.add("ip", this.ip)
+            builder.add("ip", this.value)
         }
 
         builder
@@ -104,33 +110,39 @@ class UptimerItem(
     }
 
     fun ping() {
-        UptimerLogger.info("PING $ip")
+        UptimerLogger.info("PING $value")
         var online = true
-        if (this.ip.startsWith("http")) {
-            val connection: HttpURLConnection = URL(this.ip).openConnection() as HttpURLConnection
-            connection.requestMethod = "HEAD"
-            connection.connectTimeout = 5000
-            val responseCode: Int = connection.responseCode
-            if (responseCode != 200) {
-                online = false
-                errorCode = responseCode
-            }
-        } else if (this.ip.split(":").size > 1) {
-            val sockaddr: SocketAddress = InetSocketAddress(this.ip.split(":")[0], this.ip.split(":")[1].toInt())
-            val socket = Socket()
 
-            try {
-                socket.connect(sockaddr, 5000)
-            } catch (e: IOException) {
-                online = false
+        when(this.type){
+            UptimerItemType.SITE -> {
+                val connection: HttpURLConnection = URL(this.value).openConnection() as HttpURLConnection
+                connection.requestMethod = "HEAD"
+                connection.connectTimeout = 5000
+                val responseCode: Int = connection.responseCode
+                if (responseCode != 200) {
+                    online = false
+                    errorCode = responseCode
+                }
             }
-        } else {
-            val geek = InetAddress.getByName(ip)
-            online = geek.isReachable(5000)
+            UptimerItemType.HOST, UptimerItemType.IP -> {
+                if (this.value.split(":").size > 1) {
+                    val sockaddr: SocketAddress = InetSocketAddress(this.value.split(":")[0], this.value.split(":")[1].toInt())
+                    val socket = Socket()
+
+                    try {
+                        socket.connect(sockaddr, 5000)
+                    } catch (e: IOException) {
+                        online = false
+                    }
+                } else {
+                    val geek = InetAddress.getByName(value)
+                    online = geek.isReachable(5000)
+                }
+            }
         }
 
         if (!online) {
-            UptimerLogger.info("$ip is DOWN")
+            UptimerLogger.info("$value is DOWN")
             if (this.status != PingStatus.OFFLINE)
                 this.status = PingStatus.PENDING
             Uptimer.notifyListeners(UptimerPingEvent(this, UptimerEventType.PING_PENDING))
@@ -159,7 +171,7 @@ class UptimerItem(
                 this.errorCode = 0
             }
             if (this.status == PingStatus.ONLINE) {
-                UptimerLogger.info("$ip is UP")
+                UptimerLogger.info("$value is UP")
             }
         }
     }
