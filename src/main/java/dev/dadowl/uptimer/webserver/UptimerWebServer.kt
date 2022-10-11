@@ -16,14 +16,18 @@ class UptimerWebServer(private val port: Int = 9000, private val hideIp: Boolean
         httpService.port(port)
         httpService.threadPool(350)
         httpService.internalServerError("Error: 500 internal error")
-        httpService.staticFiles.headers(mapOf(
-            "Accept" to "application/json",
-            "Access-Control-Allow-Origin" to "*",
-            "Access-Control-Allow-Methods" to "GET, POST"
-        ))
+        httpService.notFound("Error: 404 Not found")
 
         httpService.get("/", Route { request, response ->
             response.type("application/json")
+            mapOf(
+                "Accept" to "application/json",
+                "Access-Control-Allow-Origin" to "*",
+                "Access-Control-Allow-Methods" to "GET",
+                "Server" to "UptimerServer(https://github.com/dadowl/uptimer)",
+            ).forEach{
+                response.header(it.key, it.value)
+            }
 
             val jsonBuilder = JsonBuilder()
             val serversJson = JsonBuilder()

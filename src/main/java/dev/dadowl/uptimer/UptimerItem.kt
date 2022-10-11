@@ -118,6 +118,7 @@ class UptimerItem(
                 val connection: HttpURLConnection = URL(this.value).openConnection() as HttpURLConnection
                 connection.requestMethod = "HEAD"
                 connection.connectTimeout = 5000
+                connection.setRequestProperty("User-Agent", "Uptimer(https://github.com/dadowl/uptimer)")
                 val responseCode: Int = connection.responseCode
                 if (responseCode != 200) {
                     online = false

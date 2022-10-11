@@ -164,6 +164,7 @@ class UptimerTgNoticer(config: Config): TelegramLongPollingBot(), UptimerEventLi
             UptimerEventType.PING_OFFLINE -> {
                 sendMessage(UptimerItem.getMessage(uptimerItem.downMsg, uptimerItem))
             }
+            else -> {}
         }
     }
 

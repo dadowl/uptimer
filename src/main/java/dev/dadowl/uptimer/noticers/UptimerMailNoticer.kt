@@ -74,6 +74,7 @@ class UptimerMailNoticer(config: Config) : UptimerEventListener {
             UptimerEventType.PING_OFFLINE -> {
                 sendLetter("${uptimerItem.value} is DOWN", UptimerItem.getMessage(uptimerItem.downMsg, uptimerItem))
             }
+            else -> {}
         }
     }
 }
