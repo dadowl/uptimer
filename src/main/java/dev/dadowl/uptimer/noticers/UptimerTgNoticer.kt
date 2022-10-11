@@ -31,6 +31,7 @@ class UptimerTgNoticer(config: Config): TelegramLongPollingBot(), UptimerEventLi
     val statusMessage = UptimerTgStatusMessage(Config(config.getJsonObject("status")))
     private val deleteAfter = config.getString("deleteAfter", "1h")
     private var delValue = 1L
+    private var sendNotifications = true
 
     private val RECONNECT_PAUSE = 10000L
 
@@ -56,6 +57,14 @@ class UptimerTgNoticer(config: Config): TelegramLongPollingBot(), UptimerEventLi
                 if (delValue <= 0) delValue = 1
 
                 UptimerLogger.info("Messages will be deleted after $delValue${Utils.lastChar(deleteAfter)}!")
+            }
+
+            sendNotifications = config.getBoolean("sendNotifications", true)
+
+            if (sendNotifications){
+                UptimerLogger.info("Messages will be sent to the Telegram channel.")
+            } else {
+                UptimerLogger.warn("Messages will not be sent to the Telegram channel.")
             }
         } else {
             UptimerLogger.warn("Telegram noticer is disabled.")
@@ -156,6 +165,7 @@ class UptimerTgNoticer(config: Config): TelegramLongPollingBot(), UptimerEventLi
     }
 
     override fun onPingEvent(event: UptimerPingEvent) {
+        if (!this.sendNotifications) return
         val uptimerItem = event.source as UptimerItem
         when(event.eventType){
             UptimerEventType.PING_ONLINE -> {

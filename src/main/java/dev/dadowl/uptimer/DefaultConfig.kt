@@ -38,6 +38,7 @@ enum class DefaultConfig(val json: JsonObject) {
                     .add("username", "")
                     .add("channel", -1)
                     .add("deleteAfter", "1h")
+                    .add("sendNotifications", true)
                     .add("status",
                         JsonBuilder()
                             .add("msgId", -1)
