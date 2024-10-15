@@ -25,8 +25,8 @@ class UptimerMailNoticer(config: Config) : UptimerEventListener {
     private val sendTo = config.getString("sendTo")
 
     init {
-        if (enabled){
-            if (host.isEmpty() || port == 0 || username.isEmpty() || password.isEmpty() || senderName.isEmpty() || address.isEmpty() || sendTo.isEmpty()){
+        if (enabled) {
+            if (host.isEmpty() || port == 0 || username.isEmpty() || password.isEmpty() || senderName.isEmpty() || address.isEmpty() || sendTo.isEmpty()) {
                 enabled = false
                 UptimerLogger.warn("Mail noticer is disabled. Settings error...")
             }
@@ -35,45 +35,51 @@ class UptimerMailNoticer(config: Config) : UptimerEventListener {
         }
     }
 
-    private fun sendLetter(subject: String, text: String){
+    private fun sendLetter(subject: String, text: String) {
         if (!enabled) return
 
-        val props = System.getProperties()
+        try {
+            val props = System.getProperties()
 
-        props["mail.smtp.host"] = host
-        props["mail.smtp.ssl.enable"] = "true"
-        props["mail.smtp.auth"] = "true"
+            props["mail.smtp.host"] = host
+            props["mail.smtp.ssl.enable"] = "true"
+            props["mail.smtp.auth"] = "true"
 
-        val session = Session.getDefaultInstance(props, null)
+            val session = Session.getDefaultInstance(props, null)
 
 
-        val message = MimeMessage(session)
+            val message = MimeMessage(session)
 
-        message.subject = subject
-        message.addHeader("Content-type", "text/HTML; charset=UTF-8")
-        message.addHeader("format", "flowed")
-        message.addHeader("Content-Transfer-Encoding", "8bit")
-        message.setFrom(InternetAddress(address, senderName))
-        message.setText(text, "UTF-8")
-        message.addRecipient(Message.RecipientType.TO, InternetAddress(sendTo))
-        message.sentDate = Date()
+            message.subject = subject
+            message.addHeader("Content-type", "text/HTML; charset=UTF-8")
+            message.addHeader("format", "flowed")
+            message.addHeader("Content-Transfer-Encoding", "8bit")
+            message.setFrom(InternetAddress(address, senderName))
+            message.setText(text, "UTF-8")
+            message.addRecipient(Message.RecipientType.TO, InternetAddress(sendTo))
+            message.sentDate = Date()
 
-        val transport = session.transport
-        transport.connect(host, port, username, password)
+            val transport = session.transport
+            transport.connect(host, port, username, password)
 
-        transport.sendMessage(message, message.allRecipients)
+            transport.sendMessage(message, message.allRecipients)
+        } catch (e: Exception) {
+            UptimerLogger.error("Mail sending error!", e)
+        }
 
     }
 
     override fun onPingEvent(event: UptimerPingEvent) {
         val uptimerItem = event.source as UptimerItem
-        when(event.eventType){
+        when (event.eventType) {
             UptimerEventType.PING_ONLINE -> {
-                sendLetter("${uptimerItem.value} is UP", UptimerItem.getMessage(uptimerItem.upMsg, uptimerItem))
+                sendLetter("${uptimerItem.value} is UP", UptimerItem.formatMessage(uptimerItem.upMsg, uptimerItem))
             }
+
             UptimerEventType.PING_OFFLINE -> {
-                sendLetter("${uptimerItem.value} is DOWN", UptimerItem.getMessage(uptimerItem.downMsg, uptimerItem))
+                sendLetter("${uptimerItem.value} is DOWN", UptimerItem.formatMessage(uptimerItem.downMsg, uptimerItem))
             }
+
             else -> {}
         }
     }
