@@ -45,10 +45,6 @@ class UptimerTgNoticer(config: Config): TelegramLongPollingBot(), UptimerEventLi
                 UptimerLogger.warn("Telegram channel id is invalid or not found. Messages will not be sent.")
             }
 
-            if (statusMessage.id == -1){
-                UptimerLogger.warn("Status message id is -1! Ignoring this function.")
-            }
-
             if (deleteAfter.isEmpty()){
                 UptimerLogger.warn("Messages wil not be deleted.")
             } else {

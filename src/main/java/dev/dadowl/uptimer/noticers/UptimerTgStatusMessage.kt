@@ -28,7 +28,11 @@ class UptimerTgStatusMessage(
     private var statusText = ""
 
     init {
-        this.id = config.getInt("msgId")
+        if (id == -1){
+            UptimerLogger.warn("Status message id is -1! Ignoring this function.")
+        }
+
+        this.id = config.getInt("msgId", -1)
 
         val jarray = config.getJsonArray("lines")
         if (jarray.isEmpty) {
