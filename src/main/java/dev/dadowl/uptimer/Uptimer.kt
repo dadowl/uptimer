@@ -11,8 +11,13 @@ import dev.dadowl.uptimer.utils.Config
 import dev.dadowl.uptimer.utils.FileUtil
 import dev.dadowl.uptimer.utils.Utils
 import dev.dadowl.uptimer.webserver.UptimerWebServer
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import java.time.Duration
 import java.util.*
+import java.util.concurrent.Executors
 import kotlin.system.exitProcess
 
 object Uptimer {
@@ -32,8 +37,8 @@ object Uptimer {
     val uptimerTgNoticer: UptimerTgNoticer = UptimerTgNoticer(Config(noticersConfig.getJsonObject("Telegram")))
     val uptimerMailNoticer = UptimerMailNoticer(Config(noticersConfig.getJsonObject("mail")))
 
-    var upMessage = "Server {serverName}({ip}) is UP!"
-    var downMessage = "Server {serverName}({ip}) is DOWN!"
+    var defaultUpMessage = "Server {serverName}({ip}) is UP!"
+    var defaultDownMessage = "Server {serverName}({ip}) is DOWN!"
     var pingEvery = "5m"
     var downTryes = 3
 
@@ -67,12 +72,12 @@ object Uptimer {
         addEventListener(uptimerMailNoticer)
 
         if (config.getString("upMessage").isNotEmpty()){
-            upMessage = config.getString("upMessage")
+            defaultUpMessage = config.getString("upMessage")
         } else {
             UptimerLogger.warn("Up message is empty in config. Use default message.")
         }
         if (config.getString("downMessage").isNotEmpty()){
-            downMessage = config.getString("downMessage")
+            defaultDownMessage = config.getString("downMessage")
         } else {
             UptimerLogger.warn("Down message is empty in config. Use default message.")
         }
@@ -97,23 +102,23 @@ object Uptimer {
 
         UptimerLogger.info("Ping servers every $pingVal${Utils.lastChar(pingEvery)}!")
 
-        loadUptimerItems()
-
-        scheduler.schedule({
-                uptimerItems.forEach { it.ping() }
-                uptimerTgNoticer.updateStatusMessage()
-            },
-            Schedules.afterInitialDelay(Schedules.fixedDelaySchedule(pingValue), Duration.ZERO)
-        )
-
         if (config.getBoolean("WebServer.enable", true)) {
             uptimerWebServer.start()
         } else {
             UptimerLogger.info("The web server is disabled.")
         }
+
+        loadUptimerItems()
+
+        scheduler.schedule(
+            {
+                this.executePingAndNotify(uptimerItems, uptimerTgNoticer)
+            },
+            Schedules.afterInitialDelay(Schedules.fixedDelaySchedule(pingValue), Duration.ZERO)
+        )
     }
 
-    fun loadUptimerItems(){
+    private fun loadUptimerItems(){
         UptimerLogger.info("Load UptimerItems")
         var jarray = JsonArray()
 
@@ -129,20 +134,14 @@ object Uptimer {
 
         jarray.forEach{ item ->
             val jsonData = Config(item.asJsonObject)
-            val type: UptimerItemType
-            val value =
-                if (jsonData.getString("host").isNotEmpty()) {
-                    type = UptimerItemType.HOST
-                    jsonData.getString("host")
-                } else if (jsonData.getString("site").isNotEmpty()) {
-                    type = UptimerItemType.SITE
-                    jsonData.getString("site")
-                } else {
-                    type = UptimerItemType.IP
-                    jsonData.getString("ip")
-                }
-            val isValid = type.checkValid(value)
-            if (isValid) {
+
+            val (value, type) = when {
+                jsonData.getString("host").isNotEmpty() -> jsonData.getString("host") to UptimerItemType.HOST
+                jsonData.getString("site").isNotEmpty() -> jsonData.getString("site") to UptimerItemType.SITE
+                else -> jsonData.getString("ip") to UptimerItemType.IP
+            }
+
+            if (type.isValid(value)) {
                 val it = UptimerItem(item.asJsonObject, value, type)
                 uptimerItems.add(it)
                 UptimerLogger.info("Loaded ${it.toStringMain()}")
@@ -157,12 +156,10 @@ object Uptimer {
     }
 
     fun getItemsStatus(): String {
-        return if (uptimerItems.filter { it.status == UptimerItem.PingStatus.ONLINE }.size == uptimerItems.size){
-            "allOnline"
-        } else if (uptimerItems.filter { it.status == UptimerItem.PingStatus.OFFLINE }.size == uptimerItems.size){
-            "allOffline"
-        } else {
-            "someOffline"
+        return when {
+            uptimerItems.all { it.status == UptimerItem.PingStatus.ONLINE } -> "allOnline"
+            uptimerItems.all { it.status == UptimerItem.PingStatus.OFFLINE } -> "allOffline"
+            else -> "someOffline"
         }
     }
 
@@ -185,8 +182,15 @@ object Uptimer {
         eventListeners.add(listener)
     }
 
-    fun notifyListeners(event: UptimerPingEvent){
-        eventListeners.forEach{ it.onPingEvent(event) }
+    fun fireEvent(event: UptimerPingEvent){
+        eventListeners.forEach { it.onPingEvent(event) }
+    }
+
+    @OptIn(DelicateCoroutinesApi::class)
+    fun fireEventAsync(event: UptimerPingEvent) {
+        GlobalScope.launch(Dispatchers.IO) {
+            fireEvent(event)
+        }
     }
 
     fun getDefaultUpMessageForGroup(group: String): String{
@@ -195,5 +199,28 @@ object Uptimer {
 
     fun getDefaultDownMessageForGroup(group: String): String{
         return config.getString("groupsDefaultMessages.$group.downMessage")
+    }
+
+    private fun executePingAndNotify(uptimerItems: List<UptimerItem>, uptimerTgNoticer: UptimerTgNoticer) {
+        val executorService = Executors.newFixedThreadPool(uptimerItems.size) { runnable ->
+            Thread(runnable).apply {
+                isDaemon = true
+                name = "PingerThread"
+            }
+        }
+
+        try {
+            val futures = uptimerItems.map { item ->
+                executorService.submit {
+                    item.ping()
+                }
+            }
+
+            futures.forEach { it.get() }
+
+            uptimerTgNoticer.statusMessage.updateStatusMessage(uptimerItems)
+        } finally {
+            executorService.shutdown()
+        }
     }
 }

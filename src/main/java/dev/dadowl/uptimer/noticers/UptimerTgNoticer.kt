@@ -14,7 +14,6 @@ import org.telegram.telegrambots.meta.TelegramBotsApi
 import org.telegram.telegrambots.meta.api.methods.pinnedmessages.PinChatMessage
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage
-import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText
 import org.telegram.telegrambots.meta.api.objects.Update
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException
 import org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException
@@ -27,8 +26,8 @@ class UptimerTgNoticer(config: Config): TelegramLongPollingBot(), UptimerEventLi
     var enabled = config.getBoolean("enabled", false)
     private val tg_token = config.getString("token")
     private val tg_username = config.getString("username")
-    private val tg_channel = config.getLong("channel")
-    val statusMessage = UptimerTgStatusMessage(Config(config.getJsonObject("status")))
+    val tg_channel = config.getLong("channel")
+    val statusMessage = UptimerTgStatusMessage(Config(config.getJsonObject("status")), tg_channel, this)
     private val deleteAfter = config.getString("deleteAfter", "1h")
     private var delValue = 1L
     private var sendNotifications = true
@@ -123,56 +122,16 @@ class UptimerTgNoticer(config: Config): TelegramLongPollingBot(), UptimerEventLi
 
     override fun onUpdateReceived(update: Update?) {}
 
-    fun updateStatusMessage(){
-        if (!enabled || statusMessage.id == -1 || tg_channel == -1L) return
-
-        val status = statusMessage.statuses[Uptimer.getItemsStatus()] ?: "allOffline"
-
-        var finalString = ""
-        for (line in statusMessage.lines) {
-            var l = line
-
-            if (l.contains("{status}")){
-                l = l.replace(l, status)
-            }
-            if (l.contains("group")){
-                var currentGroup = l.split(":")[1]
-                currentGroup = currentGroup.substring(0, currentGroup.length - 1)
-
-                val groupServers = Uptimer.uptimerItems.filter { it.group == currentGroup }
-                if (groupServers.isNotEmpty()){
-                    val serversString = StringBuilder()
-                    var i = 0
-                    groupServers.forEach { server ->
-                        i++
-                        serversString.append(UptimerItem.getMessage(statusMessage.serverPattern, server) + if (i != groupServers.size) "\n" else "")
-                    }
-                    l = l.replace(l, serversString.toString())
-                }
-            }
-
-            finalString += "$l\n"
-        }
-
-        if (this.statusMessage.statusText != finalString){
-            this.statusMessage.statusText = finalString
-            val edit = EditMessageText()
-            edit.chatId = tg_channel.toString()
-            edit.messageId = statusMessage.id
-            edit.text = finalString
-            execute(edit)
-        }
-    }
-
     override fun onPingEvent(event: UptimerPingEvent) {
         if (!this.sendNotifications) return
+
         val uptimerItem = event.source as UptimerItem
         when(event.eventType){
             UptimerEventType.PING_ONLINE -> {
-                sendMessage(UptimerItem.getMessage(uptimerItem.upMsg, uptimerItem))
+                sendMessage(uptimerItem.formatMessage(uptimerItem.upMsg))
             }
             UptimerEventType.PING_OFFLINE -> {
-                sendMessage(UptimerItem.getMessage(uptimerItem.downMsg, uptimerItem))
+                sendMessage(uptimerItem.formatMessage(uptimerItem.downMsg))
             }
             else -> {}
         }

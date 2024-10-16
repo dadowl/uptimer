@@ -41,4 +41,16 @@ object Utils {
         return str.toCharArray()[str.length - 1].toString()
     }
 
+    fun replacePlaceholders(str: String, map: HashMap<String, String>): String {
+        var newStr = str
+
+        map.forEach { (key, value) ->
+            if (newStr.contains(key)){
+                newStr = newStr.replace(key, value)
+            }
+        }
+
+        return newStr
+    }
+
 }

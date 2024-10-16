@@ -3,7 +3,9 @@ package dev.dadowl.uptimer
 import com.google.gson.JsonObject
 import dev.dadowl.uptimer.events.UptimerEventType
 import dev.dadowl.uptimer.events.UptimerPingEvent
+import dev.dadowl.uptimer.utils.Config
 import dev.dadowl.uptimer.utils.JsonBuilder
+import dev.dadowl.uptimer.utils.Utils
 import java.io.IOException
 import java.net.*
 import java.time.LocalDateTime
@@ -17,39 +19,11 @@ class UptimerItem(
     val type: UptimerItemType
 ) {
 
-    companion object {
-        fun getMessage(msg: String, item: UptimerItem): String {
-            var message = msg
-
-            if (message.contains("{ip}")) {
-                message = message.replace("{ip}", item.value)
-            }
-            if (message.contains("{serverName}")) {
-                message = message.replace("{serverName}", item.serverName)
-            }
-            if (message.contains("{services}")) {
-                message = message.replace("{services}", item.services)
-            }
-            if (message.contains("{downTime}")) {
-                val diff = ChronoUnit.SECONDS.between(item.downOn, LocalDateTime.now())
-                message = message.replace("{downTime}", diff.toString())
-            }
-            if (message.contains("{errorCode}")) {
-                message = message.replace("{errorCode}", item.errorCode.toString())
-            }
-            if (message.contains("{status}")) {
-                message = message.replace("{status}", item.status.icon)
-            }
-
-            return message
-        }
-    }
-
     var group = "servers"
     var status = PingStatus.ONLINE
-    var downOn: LocalDateTime = LocalDateTime.now()
-    var downTryes = 0
-    var errorCode = 0
+    var downOn: LocalDateTime? = null
+    private var downTryes = 0
+    var httpStatusCode = 0
 
     var upMsg: String = ""
     var downMsg: String = ""
@@ -66,23 +40,23 @@ class UptimerItem(
         json.get("services").asString,
         type
     ) {
-        if (json.get("group") != null && json.get("group").asString.isNotEmpty()) {
-            group = json.get("group").asString
+        val itemConfig = Config(json)
+
+        if (itemConfig.getString("group", "").isNotEmpty()) {
+            group = itemConfig.getString("group", "servers")
         }
 
-        upMsg = if (json.asJsonObject.get("upMessage") != null && json.asJsonObject.get("upMessage").asString.isNotEmpty()) {
-            json.asJsonObject.get("upMessage").asString
-        } else {
-            var temp = Uptimer.getDefaultUpMessageForGroup(group)
-            if (temp.isEmpty()) temp = Uptimer.upMessage
-            temp
+        upMsg = itemConfig.getString("upMessage", "").ifEmpty {
+            var defaultUpMessage = Uptimer.getDefaultUpMessageForGroup(group)
+            if (defaultUpMessage.isEmpty()) defaultUpMessage = Uptimer.defaultUpMessage
+
+            defaultUpMessage
         }
-        downMsg = if (json.asJsonObject.get("downMessage") != null && json.asJsonObject.get("downMessage").asString.isNotEmpty()) {
-            json.asJsonObject.get("downMessage").asString
-        } else {
-            var temp = Uptimer.getDefaultDownMessageForGroup(group)
-            if (temp.isEmpty()) temp = Uptimer.downMessage
-            temp
+        downMsg = itemConfig.getString("downMessage", "").ifEmpty {
+            var defaultDownMessage = Uptimer.getDefaultDownMessageForGroup(group)
+            if (defaultDownMessage.isEmpty()) defaultDownMessage = Uptimer.defaultDownMessage
+
+            defaultDownMessage
         }
     }
 
@@ -111,9 +85,8 @@ class UptimerItem(
 
     fun ping() {
         UptimerLogger.info("PING $value")
-        var online = true
 
-        when(this.type){
+        val online: Boolean = when (this.type) {
             UptimerItemType.SITE -> {
                 val connection: HttpURLConnection = URL(this.value).openConnection() as HttpURLConnection
                 connection.requestMethod = "HEAD"
@@ -121,59 +94,92 @@ class UptimerItem(
                 connection.setRequestProperty("User-Agent", "Uptimer(https://github.com/dadowl/uptimer)")
                 val responseCode: Int = connection.responseCode
                 if (responseCode != 200) {
-                    online = false
-                    errorCode = responseCode
+                    httpStatusCode = responseCode
+
+                    false
+                } else {
+                    true
                 }
             }
+
             UptimerItemType.HOST, UptimerItemType.IP -> {
                 if (this.value.split(":").size > 1) {
-                    val sockaddr: SocketAddress = InetSocketAddress(this.value.split(":")[0], this.value.split(":")[1].toInt())
+                    val sockaddr: SocketAddress =
+                        InetSocketAddress(this.value.split(":")[0], this.value.split(":")[1].toInt())
                     val socket = Socket()
 
                     try {
                         socket.connect(sockaddr, 5000)
+                        true
                     } catch (e: IOException) {
-                        online = false
+                        false
+                    } finally {
+                        socket.close()
                     }
                 } else {
                     val geek = InetAddress.getByName(value)
-                    online = geek.isReachable(5000)
+
+                    geek.isReachable(5000)
                 }
             }
         }
 
         if (!online) {
-            UptimerLogger.info("$value is DOWN")
-            if (this.status != PingStatus.OFFLINE)
+            if (this.status == PingStatus.ONLINE) {
                 this.status = PingStatus.PENDING
-            Uptimer.notifyListeners(UptimerPingEvent(this, UptimerEventType.PING_PENDING))
 
-            if (this.downTryes == (Uptimer.downTryes - 1)) {
-                this.status = PingStatus.OFFLINE
-                Uptimer.notifyListeners(UptimerPingEvent(this, UptimerEventType.PING_OFFLINE))
-            }
-
-            if (this.downTryes == 0) {
-                downOn = LocalDateTime.now()
+                Uptimer.fireEventAsync(UptimerPingEvent(this, UptimerEventType.PING_PENDING))
             }
 
             this.downTryes++
-        }
-        if (online) {
+
+            if (this.downTryes >= Uptimer.downTryes && downOn == null) {
+                this.status = PingStatus.OFFLINE
+                downOn = LocalDateTime.now()
+
+                Uptimer.fireEventAsync(UptimerPingEvent(this, UptimerEventType.PING_OFFLINE))
+            }
+        } else {
             if (this.status == PingStatus.OFFLINE) {
-                this.status = PingStatus.ONLINE
-                this.downTryes = 0
-                this.errorCode = 0
-                Uptimer.notifyListeners(UptimerPingEvent(this, UptimerEventType.PING_ONLINE))
+                clearItem()
+
+                Uptimer.fireEventAsync(UptimerPingEvent(this, UptimerEventType.PING_ONLINE))
             }
             if (this.status == PingStatus.PENDING) {
-                this.status = PingStatus.ONLINE
-                this.downTryes = 0
-                this.errorCode = 0
-            }
-            if (this.status == PingStatus.ONLINE) {
-                UptimerLogger.info("$value is UP")
+                clearItem()
             }
         }
+
+        UptimerLogger.info(
+        "$value is ${if (this.status == PingStatus.ONLINE) "UP" else "DOWN"}. " +
+            "Current status: ${this.status}. " +
+            when (this.status) {
+                PingStatus.PENDING -> "Try: $downTryes"
+                PingStatus.OFFLINE -> "Down on: $downOn"
+                else -> ""
+            }
+        )
+    }
+
+    private fun clearItem() {
+        this.status = PingStatus.ONLINE
+        this.downTryes = 0
+        this.httpStatusCode = 0
+        this.downOn = null
+    }
+
+    fun formatMessage(msg: String): String {
+        val diff = if (this.downOn != null) ChronoUnit.SECONDS.between(this.downOn, LocalDateTime.now()) else ""
+
+        return Utils.replacePlaceholders(
+            msg, hashMapOf(
+                "{ip}" to this.value,
+                "{serverName}" to this.serverName,
+                "{services}" to this.services,
+                "{downTime}" to diff.toString(),
+                "{errorCode}" to this.httpStatusCode.toString(),
+                "{status}" to this.status.icon
+            )
+        )
     }
 }
