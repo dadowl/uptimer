@@ -4,6 +4,7 @@ import com.coreoz.wisp.schedule.Schedules
 import dev.dadowl.uptimer.Uptimer
 import dev.dadowl.uptimer.UptimerItem
 import dev.dadowl.uptimer.UptimerLogger
+import dev.dadowl.uptimer.events.UptimerCheckCompletedEvent
 import dev.dadowl.uptimer.events.UptimerEventListener
 import dev.dadowl.uptimer.events.UptimerEventType
 import dev.dadowl.uptimer.events.UptimerPingEvent
@@ -131,6 +132,12 @@ class UptimerTgNoticer(config: Config): TelegramLongPollingBot(), UptimerEventLi
             }
             else -> {}
         }
+    }
+
+    override fun onCheckCompleted(event: UptimerCheckCompletedEvent) {
+        val items = event.source as List<UptimerItem>
+
+        statusMessage.updateStatusMessage(items)
     }
 
     private fun deleteMessageDelayed(msgId: Int){

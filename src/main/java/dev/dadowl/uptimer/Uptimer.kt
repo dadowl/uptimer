@@ -3,7 +3,9 @@ package dev.dadowl.uptimer
 import com.coreoz.wisp.Scheduler
 import com.coreoz.wisp.schedule.Schedules
 import com.google.gson.JsonArray
+import dev.dadowl.uptimer.events.UptimerCheckCompletedEvent
 import dev.dadowl.uptimer.events.UptimerEventListener
+import dev.dadowl.uptimer.events.UptimerEventType
 import dev.dadowl.uptimer.events.UptimerPingEvent
 import dev.dadowl.uptimer.noticers.UptimerMailNoticer
 import dev.dadowl.uptimer.noticers.UptimerTgNoticer
@@ -182,12 +184,19 @@ object Uptimer {
         eventListeners.add(listener)
     }
 
-    fun fireEvent(event: UptimerPingEvent){
-        eventListeners.forEach { it.onPingEvent(event) }
+    fun fireEvent(event: EventObject){
+        eventListeners.forEach {
+            if (event is UptimerPingEvent){
+                it.onPingEvent(event)
+            }
+            if (event is UptimerCheckCompletedEvent){
+                it.onCheckCompleted(event)
+            }
+        }
     }
 
     @OptIn(DelicateCoroutinesApi::class)
-    fun fireEventAsync(event: UptimerPingEvent) {
+    fun fireEventAsync(event: EventObject) {
         GlobalScope.launch(Dispatchers.IO) {
             fireEvent(event)
         }
@@ -218,7 +227,7 @@ object Uptimer {
 
             futures.forEach { it.get() }
 
-            uptimerTgNoticer.statusMessage.updateStatusMessage(uptimerItems)
+            fireEventAsync(UptimerCheckCompletedEvent(uptimerItems))
         } finally {
             executorService.shutdown()
         }

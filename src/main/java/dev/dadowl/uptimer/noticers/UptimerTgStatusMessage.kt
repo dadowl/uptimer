@@ -94,7 +94,9 @@ class UptimerTgStatusMessage(
             edit.messageId = id
             edit.text = finalString
 
-            tg.execute(edit)
+            try {
+                tg.execute(edit)
+            } catch (_: Exception){}
         }
     }
 }
