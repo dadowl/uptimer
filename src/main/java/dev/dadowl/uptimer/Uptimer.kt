@@ -5,7 +5,6 @@ import com.coreoz.wisp.schedule.Schedules
 import com.google.gson.JsonArray
 import dev.dadowl.uptimer.events.UptimerCheckCompletedEvent
 import dev.dadowl.uptimer.events.UptimerEventListener
-import dev.dadowl.uptimer.events.UptimerEventType
 import dev.dadowl.uptimer.events.UptimerPingEvent
 import dev.dadowl.uptimer.noticers.UptimerMailNoticer
 import dev.dadowl.uptimer.noticers.UptimerTgNoticer
@@ -114,7 +113,7 @@ object Uptimer {
 
         scheduler.schedule(
             {
-                this.executePingAndNotify(uptimerItems, uptimerTgNoticer)
+                this.executePingAndNotify(uptimerItems)
             },
             Schedules.afterInitialDelay(Schedules.fixedDelaySchedule(pingValue), Duration.ZERO)
         )
@@ -210,7 +209,7 @@ object Uptimer {
         return config.getString("groupsDefaultMessages.$group.downMessage")
     }
 
-    private fun executePingAndNotify(uptimerItems: List<UptimerItem>, uptimerTgNoticer: UptimerTgNoticer) {
+    private fun executePingAndNotify(uptimerItems: List<UptimerItem>) {
         val executorService = Executors.newFixedThreadPool(uptimerItems.size) { runnable ->
             Thread(runnable).apply {
                 isDaemon = true
