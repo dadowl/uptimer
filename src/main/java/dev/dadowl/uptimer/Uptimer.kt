@@ -189,7 +189,7 @@ object Uptimer {
                 it.onPingEvent(event)
             }
             if (event is UptimerCheckCompletedEvent){
-                it.onCheckCompleted(event)
+                it.onCheckCompletedEvent(event)
             }
         }
     }

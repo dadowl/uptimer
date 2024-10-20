@@ -5,5 +5,5 @@ import java.util.*
 interface UptimerEventListener : EventListener {
     fun onPingEvent(event: UptimerPingEvent) {}
 
-    fun onCheckCompleted(event: UptimerCheckCompletedEvent) {}
+    fun onCheckCompletedEvent(event: UptimerCheckCompletedEvent) {}
 }

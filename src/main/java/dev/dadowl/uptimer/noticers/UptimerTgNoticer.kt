@@ -134,7 +134,7 @@ class UptimerTgNoticer(config: Config): TelegramLongPollingBot(), UptimerEventLi
         }
     }
 
-    override fun onCheckCompleted(event: UptimerCheckCompletedEvent) {
+    override fun onCheckCompletedEvent(event: UptimerCheckCompletedEvent) {
         val items = event.source as List<UptimerItem>
 
         statusMessage.updateStatusMessage(items)
