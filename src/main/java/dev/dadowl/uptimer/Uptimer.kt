@@ -3,15 +3,22 @@ package dev.dadowl.uptimer
 import com.coreoz.wisp.Scheduler
 import com.coreoz.wisp.schedule.Schedules
 import com.google.gson.JsonArray
-import dev.dadowl.uptimer.events.UptimerPingEvent
+import dev.dadowl.uptimer.events.UptimerCheckCompletedEvent
 import dev.dadowl.uptimer.events.UptimerEventListener
+import dev.dadowl.uptimer.events.UptimerPingEvent
 import dev.dadowl.uptimer.noticers.UptimerMailNoticer
 import dev.dadowl.uptimer.noticers.UptimerTgNoticer
-import dev.dadowl.uptimer.utils.*
+import dev.dadowl.uptimer.utils.Config
+import dev.dadowl.uptimer.utils.FileUtil
+import dev.dadowl.uptimer.utils.Utils
 import dev.dadowl.uptimer.webserver.UptimerWebServer
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import java.time.Duration
 import java.util.*
-import kotlin.collections.ArrayList
+import java.util.concurrent.Executors
 import kotlin.system.exitProcess
 
 object Uptimer {
@@ -31,8 +38,8 @@ object Uptimer {
     val uptimerTgNoticer: UptimerTgNoticer = UptimerTgNoticer(Config(noticersConfig.getJsonObject("Telegram")))
     val uptimerMailNoticer = UptimerMailNoticer(Config(noticersConfig.getJsonObject("mail")))
 
-    var upMessage = "Server {serverName}({ip}) is UP!"
-    var downMessage = "Server {serverName}({ip}) is DOWN!"
+    var defaultUpMessage = "Server {serverName}({ip}) is UP!"
+    var defaultDownMessage = "Server {serverName}({ip}) is DOWN!"
     var pingEvery = "5m"
     var downTryes = 3
 
@@ -47,7 +54,6 @@ object Uptimer {
         uptimerTgNoticer.connect()
 
         if (devMode){
-
             if (uptimerTgNoticer.enabled){
                 if (uptimerTgNoticer.statusMessage.id != -1) {
                     UptimerLogger.warn("The status message id is currently installed. You sure to update status message id? [Y/N]")
@@ -67,14 +73,14 @@ object Uptimer {
         addEventListener(uptimerMailNoticer)
 
         if (config.getString("upMessage").isNotEmpty()){
-            upMessage = config.getString("upMessage")
+            defaultUpMessage = config.getString("upMessage")
         } else {
-            UptimerLogger.info("Up message is empty in config. Use default message.")
+            UptimerLogger.warn("Up message is empty in config. Use default message.")
         }
         if (config.getString("downMessage").isNotEmpty()){
-            downMessage = config.getString("downMessage")
+            defaultDownMessage = config.getString("downMessage")
         } else {
-            UptimerLogger.info("Down message is empty in config. Use default message.")
+            UptimerLogger.warn("Down message is empty in config. Use default message.")
         }
 
         downTryes = config.getInt("downTryes", downTryes)
@@ -97,23 +103,23 @@ object Uptimer {
 
         UptimerLogger.info("Ping servers every $pingVal${Utils.lastChar(pingEvery)}!")
 
-        loadUptimerItems()
-
-        scheduler.schedule({
-                uptimerItems.forEach { it.ping() }
-                uptimerTgNoticer.updateStatusMessage()
-            },
-            Schedules.afterInitialDelay(Schedules.fixedDelaySchedule(pingValue), Duration.ZERO)
-        )
-
         if (config.getBoolean("WebServer.enable", true)) {
             uptimerWebServer.start()
         } else {
             UptimerLogger.info("The web server is disabled.")
         }
+
+        loadUptimerItems()
+
+        scheduler.schedule(
+            {
+                this.executePingAndNotify(uptimerItems)
+            },
+            Schedules.afterInitialDelay(Schedules.fixedDelaySchedule(pingValue), Duration.ZERO)
+        )
     }
 
-    fun loadUptimerItems(){
+    private fun loadUptimerItems(){
         UptimerLogger.info("Load UptimerItems")
         var jarray = JsonArray()
 
@@ -128,26 +134,20 @@ object Uptimer {
         }
 
         jarray.forEach{ item ->
-            if (item.asJsonObject.get("upMessage") == null) item.asJsonObject.addProperty("upMessage", upMessage)
-            if (item.asJsonObject.get("downMessage") == null) item.asJsonObject.addProperty("downMessage", downMessage)
+            val jsonData = Config(item.asJsonObject)
 
-            val it = UptimerItem(item.asJsonObject)
-            var corrected = false
-            if (it.ip.startsWith("http")) {
-                if (Utils.isValidURL(it.ip))
-                    corrected = true
-            } else if (it.ip.split(":").size > 1){
-                if (Utils.isValidIp(it.ip.split(":")[0]))
-                    corrected = true
-            } else {
-                if (Utils.isValidIp(it.ip))
-                    corrected = true
+            val (value, type) = when {
+                jsonData.getString("host").isNotEmpty() -> jsonData.getString("host") to UptimerItemType.HOST
+                jsonData.getString("site").isNotEmpty() -> jsonData.getString("site") to UptimerItemType.SITE
+                else -> jsonData.getString("ip") to UptimerItemType.IP
             }
-            if (corrected){
+
+            if (type.isValid(value)) {
+                val it = UptimerItem(item.asJsonObject, value, type)
                 uptimerItems.add(it)
                 UptimerLogger.info("Loaded ${it.toStringMain()}")
             } else {
-                UptimerLogger.warn("Skipped - ${it.toStringMain()} - wrong IP!")
+                UptimerLogger.warn("Skipped - $type:$value - wrong IP!")
             }
         }
 
@@ -157,17 +157,15 @@ object Uptimer {
     }
 
     fun getItemsStatus(): String {
-        return if (uptimerItems.filter { it.status == UptimerItem.PingStatus.ONLINE }.size == uptimerItems.size){
-            "allOnline"
-        } else if (uptimerItems.filter { it.status == UptimerItem.PingStatus.OFFLINE }.size == uptimerItems.size){
-            "allOffline"
-        } else {
-            "someOffline"
+        return when {
+            uptimerItems.all { it.status == UptimerItem.PingStatus.ONLINE } -> "allOnline"
+            uptimerItems.all { it.status == UptimerItem.PingStatus.OFFLINE } -> "allOffline"
+            else -> "someOffline"
         }
     }
 
     fun stop(){
-        UptimerLogger.warn("Stopping...")
+        UptimerLogger.info("Stopping...")
         exitProcess(0)
     }
 
@@ -185,7 +183,52 @@ object Uptimer {
         eventListeners.add(listener)
     }
 
-    fun notifyListeners(event: UptimerPingEvent){
-        eventListeners.forEach{ it.onPingEvent(event) }
+    fun fireEvent(event: EventObject){
+        eventListeners.forEach {
+            if (event is UptimerPingEvent){
+                it.onPingEvent(event)
+            }
+            if (event is UptimerCheckCompletedEvent){
+                it.onCheckCompletedEvent(event)
+            }
+        }
+    }
+
+    @OptIn(DelicateCoroutinesApi::class)
+    fun fireEventAsync(event: EventObject) {
+        GlobalScope.launch(Dispatchers.IO) {
+            fireEvent(event)
+        }
+    }
+
+    fun getDefaultUpMessageForGroup(group: String): String{
+        return config.getString("groupsDefaultMessages.$group.upMessage")
+    }
+
+    fun getDefaultDownMessageForGroup(group: String): String{
+        return config.getString("groupsDefaultMessages.$group.downMessage")
+    }
+
+    private fun executePingAndNotify(uptimerItems: List<UptimerItem>) {
+        val executorService = Executors.newFixedThreadPool(uptimerItems.size) { runnable ->
+            Thread(runnable).apply {
+                isDaemon = true
+                name = "PingerThread"
+            }
+        }
+
+        try {
+            val futures = uptimerItems.map { item ->
+                executorService.submit {
+                    item.ping()
+                }
+            }
+
+            futures.forEach { it.get() }
+
+            fireEventAsync(UptimerCheckCompletedEvent(uptimerItems))
+        } finally {
+            executorService.shutdown()
+        }
     }
 }

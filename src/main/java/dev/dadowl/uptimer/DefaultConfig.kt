@@ -10,8 +10,6 @@ enum class DefaultConfig(val json: JsonObject) {
         JsonBuilder()
             .add("pingEvery", "5m")
             .add("downTryes", 3)
-            .add("upMessage", "Server {serverName}({ip}) is UP!")
-            .add("downMessage", "Server {serverName}({ip}) is DOWN!")
             .add("WebServer",
                 JsonBuilder()
                     .add("enable", true)
@@ -19,6 +17,15 @@ enum class DefaultConfig(val json: JsonObject) {
                     .add("hideIp", true)
                 .build()
             )
+            .add("upMessage", "Server {serverName}({ip}) is UP!")
+            .add("downMessage", "Server {serverName}({ip}) is DOWN!")
+            .add("groupsDefaultMessages",
+                JsonBuilder()
+                    .add("group-name", JsonBuilder()
+                        .add("upMessage", "example up message for group")
+                        .add("downMessage", "example down message for group")
+                    .build())
+                .build())
         .build()
     ),
     NOTICERS(
@@ -31,6 +38,7 @@ enum class DefaultConfig(val json: JsonObject) {
                     .add("username", "")
                     .add("channel", -1)
                     .add("deleteAfter", "1h")
+                    .add("sendNotifications", true)
                     .add("status",
                         JsonBuilder()
                             .add("msgId", -1)

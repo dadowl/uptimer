@@ -6,13 +6,13 @@
 
     <groupId>dev.dadowl</groupId>
     <artifactId>uptimer</artifactId>
-    <version>3.0.1</version>
+    <version>3.0.2</version>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
-        <kotlin.version>1.6.21</kotlin.version>
-        <telegram.version>6.0.1</telegram.version>
+        <kotlin.version>1.7.20</kotlin.version>
+        <telegram.version>6.9.7.1</telegram.version>
     </properties>
 
     <dependencies>
@@ -35,12 +35,12 @@
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-core</artifactId>
-            <version>2.17.2</version>
+            <version>2.19.0</version>
         </dependency>
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-api</artifactId>
-            <version>2.17.2</version>
+            <version>2.19.0</version>
         </dependency>
         <dependency>
             <groupId>commons-validator</groupId>
@@ -50,7 +50,7 @@
         <dependency>
             <groupId>com.coreoz</groupId>
             <artifactId>wisp</artifactId>
-            <version>2.2.2</version>
+            <version>2.3.0</version>
         </dependency>
         <dependency>
             <groupId>org.telegram</groupId>
@@ -66,6 +66,11 @@
             <groupId>com.sun.mail</groupId>
             <artifactId>javax.mail</artifactId>
             <version>1.6.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jetbrains.kotlinx</groupId>
+            <artifactId>kotlinx-coroutines-core</artifactId>
+            <version>1.6.4</version>
         </dependency>
     </dependencies>
 
@@ -84,14 +89,6 @@
                         </goals>
                     </execution>
                 </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.8.1</version>
-                <configuration>
-                    <release>11</release>
-                </configuration>
             </plugin>
             <plugin>
                 <artifactId>kotlin-maven-plugin</artifactId>
@@ -123,7 +120,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.5.1</version>
+                <version>3.8.1</version>
                 <executions>
                     <!-- Replacing default-compile as it is treated specially by maven -->
                     <execution>
@@ -146,6 +143,9 @@
                         <goals> <goal>testCompile</goal> </goals>
                     </execution>
                 </executions>
+                <configuration>
+                    <release>11</release>
+                </configuration>
             </plugin>
             <plugin>
                 <!-- Build an executable JAR -->
