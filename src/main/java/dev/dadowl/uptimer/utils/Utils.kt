@@ -53,4 +53,29 @@ object Utils {
         return newStr
     }
 
+    fun formatDuration(seconds: Long): String {
+        if (seconds <= 0) return "0s"
+
+        val years = seconds / (365 * 24 * 60 * 60)
+        val remainingAfterYears = seconds % (365 * 24 * 60 * 60)
+        val months = remainingAfterYears / (30 * 24 * 60 * 60)
+        val remainingAfterMonths = remainingAfterYears % (30 * 24 * 60 * 60)
+        val days = remainingAfterMonths / (24 * 60 * 60)
+        val remainingAfterDays = remainingAfterMonths % (24 * 60 * 60)
+        val hours = remainingAfterDays / (60 * 60)
+        val remainingAfterHours = remainingAfterDays % (60 * 60)
+        val minutes = remainingAfterHours / 60
+        val remainingSeconds = remainingAfterHours % 60
+
+        val parts = mutableListOf<String>()
+        if (years > 0) parts.add("${years}y")
+        if (months > 0) parts.add("${months}m")
+        if (days > 0) parts.add("${days}d")
+        if (hours > 0) parts.add("${hours}h")
+        if (minutes > 0) parts.add("${minutes}m")
+        if (remainingSeconds > 0 && parts.isEmpty()) parts.add("${remainingSeconds}s")
+
+        return if (parts.isEmpty()) "0s" else parts.joinToString(" ")
+    }
+
 }

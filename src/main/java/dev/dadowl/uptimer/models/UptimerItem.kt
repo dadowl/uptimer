@@ -33,8 +33,8 @@ class UptimerItem(
 
     constructor(json: JsonObject, value: String, type: UptimerItemType) : this(
         value,
-        json.get("serverName").asString,
-        json.get("services").asString,
+        json.get("serverName")?.asString ?: "",
+        json.get("services")?.asString ?: "",
         type
     ) {
         val itemConfig = Config(json)
@@ -171,7 +171,7 @@ class UptimerItem(
                 "{serverName}" to this.serverName,
                 "{services}" to this.services,
                 "{downTime}" to if (this.previousOfflineSince != null && this.status == PingStatus.ONLINE) {
-                    ChronoUnit.SECONDS.between(this.previousOfflineSince, LocalDateTime.now()).toString()
+                    Utils.formatDuration(ChronoUnit.SECONDS.between(this.previousOfflineSince, LocalDateTime.now()))
                 } else {
                     "0"
                 },
