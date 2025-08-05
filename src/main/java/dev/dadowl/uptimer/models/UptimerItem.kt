@@ -23,6 +23,7 @@ class UptimerItem(
 
     var group = "servers"
     var status = PingStatus.ONLINE
+    private var previousOfflineSince: LocalDateTime? = null
     private var offlineSince: LocalDateTime? = null
     private var failedPingThreshold = 0
     private var httpStatusCode = 0
@@ -125,25 +126,22 @@ class UptimerItem(
         if (!online) {
             if (this.status == PingStatus.ONLINE) {
                 this.status = PingStatus.PENDING
-                offlineSince = LocalDateTime.now()
-
+                this.offlineSince = LocalDateTime.now()
+                this.failedPingThreshold = 0
                 Uptimer.fireEventAsync(UptimerPingEvent(this, UptimerEventType.PING_PENDING))
-            }
-
-            this.failedPingThreshold++
-
-            if (this.failedPingThreshold >= Uptimer.downTryes && offlineSince == null) {
-                this.status = PingStatus.OFFLINE
-
-                Uptimer.fireEventAsync(UptimerPingEvent(this, UptimerEventType.PING_OFFLINE))
+            } else if (this.status == PingStatus.PENDING) {
+                this.failedPingThreshold++
+                if (this.failedPingThreshold >= Uptimer.failedPingThreshold) {
+                    this.status = PingStatus.OFFLINE
+                    Uptimer.fireEventAsync(UptimerPingEvent(this, UptimerEventType.PING_OFFLINE))
+                }
             }
         } else {
             if (this.status == PingStatus.OFFLINE) {
+                this.previousOfflineSince = this.offlineSince
                 clearItem()
-
                 Uptimer.fireEventAsync(UptimerPingEvent(this, UptimerEventType.PING_ONLINE))
-            }
-            if (this.status == PingStatus.PENDING) {
+            } else if (this.status == PingStatus.PENDING) {
                 clearItem()
             }
         }
@@ -167,14 +165,16 @@ class UptimerItem(
     }
 
     fun formatMessage(msg: String): String {
-        val diff = if (this.offlineSince != null) ChronoUnit.SECONDS.between(this.offlineSince, LocalDateTime.now()) else ""
-
         return Utils.replacePlaceholders(
             msg, hashMapOf(
                 "{ip}" to this.value,
                 "{serverName}" to this.serverName,
                 "{services}" to this.services,
-                "{downTime}" to diff.toString(),
+                "{downTime}" to if (this.previousOfflineSince != null && this.status == PingStatus.ONLINE) {
+                    ChronoUnit.SECONDS.between(this.previousOfflineSince, LocalDateTime.now()).toString()
+                } else {
+                    "0"
+                },
                 "{errorCode}" to this.httpStatusCode.toString(),
                 "{status}" to this.status.icon
             )

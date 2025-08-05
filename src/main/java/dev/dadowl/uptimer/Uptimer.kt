@@ -43,8 +43,8 @@ object Uptimer {
 
     var defaultUpMessage = "Server {serverName}({ip}) is UP!"
     var defaultDownMessage = "Server {serverName}({ip}) is DOWN!"
-    var pingEvery = "5m"
-    var downTryes = 3
+    var pingInterval = "5m"
+    var failedPingThreshold = 3
 
     val uptimerItems = ArrayList<UptimerItem>()
 
@@ -86,25 +86,25 @@ object Uptimer {
             UptimerLogger.warn("Down message is empty in config. Use default message.")
         }
 
-        downTryes = config.getInt("downTryes", downTryes)
-        if (downTryes <= 0) downTryes = 1
-        UptimerLogger.info("The server will be considered offline after $downTryes failed ping attempts.")
+        failedPingThreshold = config.getInt("downTryes", failedPingThreshold)
+        if (failedPingThreshold <= 0) failedPingThreshold = 1
+        UptimerLogger.info("The server will be considered offline after $failedPingThreshold failed ping attempts.")
 
-        pingEvery = config.getString("pingEvery", pingEvery)
-        if(pingEvery.isEmpty()) pingEvery = "5m"
+        pingInterval = config.getString("pingEvery", pingInterval)
+        if(pingInterval.isEmpty()) pingInterval = "5m"
 
-        var pingVal = pingEvery.substring(0, pingEvery.length - 1).toLong()
+        var pingVal = pingInterval.substring(0, pingInterval.length - 1).toLong()
         if (pingVal <= 0) pingVal = 1
 
-        val pingValue = if (pingEvery.contains("h")){
+        val pingValue = if (pingInterval.contains("h")){
             Duration.ofHours(pingVal)
-        } else if (pingEvery.contains("s")) {
+        } else if (pingInterval.contains("s")) {
             Duration.ofSeconds(pingVal)
         } else {
             Duration.ofMinutes(pingVal)
         }
 
-        UptimerLogger.info("Ping servers every $pingVal${Utils.lastChar(pingEvery)}!")
+        UptimerLogger.info("Ping servers every $pingVal${Utils.lastChar(pingInterval)}!")
 
         if (config.getBoolean("WebServer.enable", true)) {
             uptimerWebServer.start()
