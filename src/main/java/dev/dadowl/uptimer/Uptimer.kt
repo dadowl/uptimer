@@ -6,6 +6,9 @@ import com.google.gson.JsonArray
 import dev.dadowl.uptimer.events.UptimerCheckCompletedEvent
 import dev.dadowl.uptimer.events.UptimerEventListener
 import dev.dadowl.uptimer.events.UptimerPingEvent
+import dev.dadowl.uptimer.models.PingStatus
+import dev.dadowl.uptimer.models.UptimerItem
+import dev.dadowl.uptimer.models.UptimerItemType
 import dev.dadowl.uptimer.noticers.UptimerMailNoticer
 import dev.dadowl.uptimer.noticers.UptimerTgNoticer
 import dev.dadowl.uptimer.utils.Config
@@ -158,8 +161,8 @@ object Uptimer {
 
     fun getItemsStatus(): String {
         return when {
-            uptimerItems.all { it.status == UptimerItem.PingStatus.ONLINE } -> "allOnline"
-            uptimerItems.all { it.status == UptimerItem.PingStatus.OFFLINE } -> "allOffline"
+            uptimerItems.all { it.status == PingStatus.ONLINE } -> "allOnline"
+            uptimerItems.all { it.status == PingStatus.OFFLINE } -> "allOffline"
             else -> "someOffline"
         }
     }

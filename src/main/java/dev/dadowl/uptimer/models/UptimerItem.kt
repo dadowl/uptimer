@@ -1,6 +1,8 @@
-package dev.dadowl.uptimer
+package dev.dadowl.uptimer.models
 
 import com.google.gson.JsonObject
+import dev.dadowl.uptimer.Uptimer
+import dev.dadowl.uptimer.UptimerLogger
 import dev.dadowl.uptimer.events.UptimerEventType
 import dev.dadowl.uptimer.events.UptimerPingEvent
 import dev.dadowl.uptimer.utils.Config
@@ -21,18 +23,12 @@ class UptimerItem(
 
     var group = "servers"
     var status = PingStatus.ONLINE
-    var downOn: LocalDateTime? = null
-    private var downTryes = 0
-    var httpStatusCode = 0
+    private var offlineSince: LocalDateTime? = null
+    private var failedPingThreshold = 0
+    private var httpStatusCode = 0
 
-    var upMsg: String = ""
-    var downMsg: String = ""
-
-    enum class PingStatus(val icon: String) {
-        ONLINE("\uD83D\uDFE2"),
-        OFFLINE("\uD83D\uDD34"),
-        PENDING("\uD83D\uDFE1")
-    }
+    var upMessage: String = ""
+    var downMessage: String = ""
 
     constructor(json: JsonObject, value: String, type: UptimerItemType) : this(
         value,
@@ -46,13 +42,13 @@ class UptimerItem(
             group = itemConfig.getString("group", "servers")
         }
 
-        upMsg = itemConfig.getString("upMessage", "").ifEmpty {
+        upMessage = itemConfig.getString("upMessage", "").ifEmpty {
             var defaultUpMessage = Uptimer.getDefaultUpMessageForGroup(group)
             if (defaultUpMessage.isEmpty()) defaultUpMessage = Uptimer.defaultUpMessage
 
             defaultUpMessage
         }
-        downMsg = itemConfig.getString("downMessage", "").ifEmpty {
+        downMessage = itemConfig.getString("downMessage", "").ifEmpty {
             var defaultDownMessage = Uptimer.getDefaultDownMessageForGroup(group)
             if (defaultDownMessage.isEmpty()) defaultDownMessage = Uptimer.defaultDownMessage
 
@@ -65,7 +61,7 @@ class UptimerItem(
     }
 
     override fun toString(): String {
-        return "UptimerItem(group = $group, value = $value, type: ${type},  services = $services, status = $status, upMsg = $upMsg, downMsg = $downMsg)"
+        return "UptimerItem(group = $group, value = $value, type: ${type},  services = $services, status = $status, upMsg = $upMessage, downMsg = $downMessage)"
     }
 
     fun toJson(hideIp: Boolean = true): JsonObject {
@@ -104,12 +100,14 @@ class UptimerItem(
 
             UptimerItemType.HOST, UptimerItemType.IP -> {
                 if (this.value.split(":").size > 1) {
-                    val sockaddr: SocketAddress =
-                        InetSocketAddress(this.value.split(":")[0], this.value.split(":")[1].toInt())
+                    val socketAddress = InetSocketAddress(
+                        this.value.split(":")[0],
+                        this.value.split(":")[1].toInt()
+                    )
                     val socket = Socket()
 
                     try {
-                        socket.connect(sockaddr, 5000)
+                        socket.connect(socketAddress, 5000)
                         true
                     } catch (e: IOException) {
                         false
@@ -127,15 +125,15 @@ class UptimerItem(
         if (!online) {
             if (this.status == PingStatus.ONLINE) {
                 this.status = PingStatus.PENDING
+                offlineSince = LocalDateTime.now()
 
                 Uptimer.fireEventAsync(UptimerPingEvent(this, UptimerEventType.PING_PENDING))
             }
 
-            this.downTryes++
+            this.failedPingThreshold++
 
-            if (this.downTryes >= Uptimer.downTryes && downOn == null) {
+            if (this.failedPingThreshold >= Uptimer.downTryes && offlineSince == null) {
                 this.status = PingStatus.OFFLINE
-                downOn = LocalDateTime.now()
 
                 Uptimer.fireEventAsync(UptimerPingEvent(this, UptimerEventType.PING_OFFLINE))
             }
@@ -154,8 +152,8 @@ class UptimerItem(
         "$value is ${if (this.status == PingStatus.ONLINE) "UP" else "DOWN"}. " +
             "Current status: ${this.status}. " +
             when (this.status) {
-                PingStatus.PENDING -> "Try: $downTryes"
-                PingStatus.OFFLINE -> "Down on: $downOn"
+                PingStatus.PENDING -> "Try: $failedPingThreshold"
+                PingStatus.OFFLINE -> "Down on: $offlineSince"
                 else -> ""
             }
         )
@@ -163,13 +161,13 @@ class UptimerItem(
 
     private fun clearItem() {
         this.status = PingStatus.ONLINE
-        this.downTryes = 0
+        this.failedPingThreshold = 0
         this.httpStatusCode = 0
-        this.downOn = null
+        this.offlineSince = null
     }
 
     fun formatMessage(msg: String): String {
-        val diff = if (this.downOn != null) ChronoUnit.SECONDS.between(this.downOn, LocalDateTime.now()) else ""
+        val diff = if (this.offlineSince != null) ChronoUnit.SECONDS.between(this.offlineSince, LocalDateTime.now()) else ""
 
         return Utils.replacePlaceholders(
             msg, hashMapOf(

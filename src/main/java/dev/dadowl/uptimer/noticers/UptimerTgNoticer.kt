@@ -2,7 +2,7 @@ package dev.dadowl.uptimer.noticers
 
 import com.coreoz.wisp.schedule.Schedules
 import dev.dadowl.uptimer.Uptimer
-import dev.dadowl.uptimer.UptimerItem
+import dev.dadowl.uptimer.models.UptimerItem
 import dev.dadowl.uptimer.UptimerLogger
 import dev.dadowl.uptimer.events.UptimerCheckCompletedEvent
 import dev.dadowl.uptimer.events.UptimerEventListener
@@ -125,10 +125,10 @@ class UptimerTgNoticer(config: Config): TelegramLongPollingBot(), UptimerEventLi
         val uptimerItem = event.source as UptimerItem
         when(event.eventType){
             UptimerEventType.PING_ONLINE -> {
-                sendMessage(uptimerItem.formatMessage(uptimerItem.upMsg))
+                sendMessage(uptimerItem.formatMessage(uptimerItem.upMessage))
             }
             UptimerEventType.PING_OFFLINE -> {
-                sendMessage(uptimerItem.formatMessage(uptimerItem.downMsg))
+                sendMessage(uptimerItem.formatMessage(uptimerItem.downMessage))
             }
             else -> {}
         }

@@ -1,4 +1,4 @@
-package dev.dadowl.uptimer
+package dev.dadowl.uptimer.models
 
 import dev.dadowl.uptimer.utils.Utils
 
@@ -14,11 +14,16 @@ enum class UptimerItemType(val isValid: (String) -> Boolean) {
     }),
     IP(fun(value: String): Boolean {
         if (value.split(":").size > 1) {
-            if (Utils.isValidIp(value.split(":")[0]))
+            val parts = value.split(":")
+            val ip = parts[0]
+            val port = parts[1]
+            if (Utils.isValidIp(ip) && port.toIntOrNull() != null && port.toInt() in 0..65535) {
                 return true
+            }
         } else {
-            if (Utils.isValidIp(value))
+            if (Utils.isValidIp(value)) {
                 return true
+            }
         }
         return false
     })

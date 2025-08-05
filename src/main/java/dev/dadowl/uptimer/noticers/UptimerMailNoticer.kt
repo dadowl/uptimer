@@ -1,6 +1,6 @@
 package dev.dadowl.uptimer.noticers
 
-import dev.dadowl.uptimer.UptimerItem
+import dev.dadowl.uptimer.models.UptimerItem
 import dev.dadowl.uptimer.UptimerLogger
 import dev.dadowl.uptimer.events.UptimerEventListener
 import dev.dadowl.uptimer.events.UptimerEventType
@@ -73,11 +73,11 @@ class UptimerMailNoticer(config: Config) : UptimerEventListener {
         val uptimerItem = event.source as UptimerItem
         when (event.eventType) {
             UptimerEventType.PING_ONLINE -> {
-                sendLetter("${uptimerItem.value} is UP", uptimerItem.formatMessage(uptimerItem.upMsg))
+                sendLetter("${uptimerItem.value} is UP", uptimerItem.formatMessage(uptimerItem.upMessage))
             }
 
             UptimerEventType.PING_OFFLINE -> {
-                sendLetter("${uptimerItem.value} is DOWN", uptimerItem.formatMessage(uptimerItem.downMsg))
+                sendLetter("${uptimerItem.value} is DOWN", uptimerItem.formatMessage(uptimerItem.downMessage))
             }
 
             else -> {}

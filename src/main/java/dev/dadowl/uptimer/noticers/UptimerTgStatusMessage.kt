@@ -1,7 +1,7 @@
 package dev.dadowl.uptimer.noticers
 
 import dev.dadowl.uptimer.Uptimer
-import dev.dadowl.uptimer.UptimerItem
+import dev.dadowl.uptimer.models.UptimerItem
 import dev.dadowl.uptimer.UptimerLogger
 import dev.dadowl.uptimer.utils.Config
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText
