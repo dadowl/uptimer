@@ -12,7 +12,7 @@ class UptimerTgStatusMessage(
     private val tg: UptimerTgNoticer
 ) {
 
-    var id: Int = -1
+    var id: Int = config.getInt("msgId", -1)
     private var lines: ArrayList<String> = arrayListOf(
         "{status}",
         "",
@@ -31,8 +31,6 @@ class UptimerTgStatusMessage(
         if (id == -1){
             UptimerLogger.warn("Status message id is -1! Ignoring this function.")
         }
-
-        this.id = config.getInt("msgId", -1)
 
         val jarray = config.getJsonArray("lines")
         if (jarray.isEmpty) {

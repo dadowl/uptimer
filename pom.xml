@@ -6,7 +6,7 @@
 
     <groupId>dev.dadowl</groupId>
     <artifactId>uptimer</artifactId>
-    <version>3.0.2</version>
+    <version>4.0.0</version>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
